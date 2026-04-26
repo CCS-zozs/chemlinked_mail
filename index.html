@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ChemLinked 邮件生成器</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+</head>
+<body class="bg-gray-100 p-8">
+    <div id="app" class="max-w-6xl mx-auto flex gap-8">
+        
+        <div class="w-1/2 bg-white p-6 rounded-lg shadow-md h-[85vh] overflow-y-auto">
+            <h2 class="text-2xl font-bold mb-6 text-gray-800">📝 邮件内容编辑</h2>
+            
+            <div class="mb-6">
+                <h3 class="text-lg font-semibold mb-3 border-b pb-2">基础信息</h3>
+                <div class="flex gap-4 mb-4">
+                    <div class="flex-1">
+                        <label class="block text-sm font-medium text-gray-700">期号</label>
+                        <input v-model="mailData.issue" type="text" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2">
+                    </div>
+                    <div class="flex-1">
+                        <label class="block text-sm font-medium text-gray-700">发布日期</label>
+                        <input v-model="mailData.date" type="text" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2">
+                    </div>
+                </div>
+            </div>
+
+            <div class="mb-6">
+                <h3 class="text-lg font-semibold mb-3 border-b pb-2">🌟 头条研讨会</h3>
+                <div class="mb-3">
+                    <label class="block text-sm font-medium text-gray-700">标题</label>
+                    <input v-model="mailData.topSeminar.title" type="text" class="mt-1 block w-full border border-gray-300 rounded-md p-2">
+                </div>
+                <div class="mb-3">
+                    <label class="block text-sm font-medium text-gray-700">跳转链接 (包含 redirect)</label>
+                    <input v-model="mailData.topSeminar.link" type="text" class="mt-1 block w-full border border-gray-300 rounded-md p-2">
+                </div>
+                <div class="mb-3">
+                    <label class="block text-sm font-medium text-gray-700">图片 URL (Content Studio链接)</label>
+                    <input v-model="mailData.topSeminar.imgUrl" type="text" class="mt-1 block w-full border border-gray-300 rounded-md p-2">
+                </div>
+            </div>
+
+            <div class="mb-6">
+                <div class="flex justify-between items-center mb-3 border-b pb-2">
+                    <h3 class="text-lg font-semibold">📰 亚洲太平洋地域新闻</h3>
+                    <button @click="addNews" class="bg-blue-500 text-white px-3 py-1 rounded text-sm hover:bg-blue-600">+ 添加新闻</button>
+                </div>
+                
+                <div v-for="(news, index) in mailData.newsList" :key="index" class="bg-gray-50 p-4 rounded-md mb-3 border border-gray-200">
+                    <div class="flex justify-between items-center mb-2">
+                        <span class="font-bold text-gray-600">新闻 {{ index + 1 }}</span>
+                        <button @click="removeNews(index)" class="text-red-500 text-sm hover:underline">删除</button>
+                    </div>
+                    <input v-model="news.title" type="text" placeholder="新闻标题" class="block w-full border border-gray-300 rounded-md p-2 mb-2">
+                    <input v-model="news.link" type="text" placeholder="文章链接" class="block w-full border border-gray-300 rounded-md p-2">
+                </div>
+            </div>
+        </div>
+
+        <div class="w-1/2 flex flex-col gap-4">
+            <div class="bg-white p-4 rounded-lg shadow-md flex justify-between items-center">
+                <span class="text-gray-600 text-sm">✅ 内容编辑完成后，点击右侧按钮复制生成的代码。</span>
+                <button @click="copyHtml" class="bg-green-600 text-white px-6 py-2 rounded-md font-bold hover:bg-green-700 transition">
+                    {{ copyBtnText }}
+                </button>
+            </div>
+            
+            <div class="bg-gray-800 rounded-lg shadow-md p-4 flex-1 overflow-hidden flex flex-col">
+                <h3 class="text-gray-300 text-sm mb-2 font-mono">Mailchimp HTML 源代码 (只读)</h3>
+                <textarea readonly class="w-full h-full bg-gray-900 text-green-400 font-mono text-sm p-4 rounded border-none outline-none resize-none">{{ generatedHtml }}</textarea>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        const { createApp, ref, reactive, computed } = Vue
+
+        createApp({
+            setup() {
+                const copyBtnText = ref('📋 一键复制 HTML 源码')
+                
+                // 定义响应式数据（默认数据）
+                const mailData = reactive({
+                    issue: '2026年4月前半号',
+                    date: '2026/04/10',
+                    topSeminar: {
+                        title: '中国「危険化学品安全法」を徹底解説',
+                        link: 'https://resource.chemlinked.com.cn/common/redirect.html?url=...',
+                        imgUrl: 'https://mcusercontent.com/90f812c8598491dbd61143d91/images/3e3db92f-0c45-c29b-a00c-bc587718f7cf.png'
+                    },
+                    newsList: [
+                        { title: '台湾地区 PFHxS、その塩類および関連化合物に対する税関管理を強化', link: 'https://...' },
+                        { title: '日本　労働安全衛生法のラベル表示・ＳＤＳ対象物質を追加', link: 'https://...' }
+                    ]
+                })
+
+                // 添加一条新闻
+                const addNews = () => {
+                    mailData.newsList.push({ title: '', link: '' })
+                }
+
+                // 删除指定新闻
+                const removeNews = (index) => {
+                    mailData.newsList.splice(index, 1)
+                }
+
+                // 计算生成的 HTML (修复了 600px 容器与左对齐问题)
+                const generatedHtml = computed(() => {
+                    
+                    // 动态生成新闻列表的 <li> 标签，增加了 text-align: left; 修正对齐
+                    const newsLiHtml = mailData.newsList.map(news => `
+                                            <li style="text-align: left; margin-bottom: 5px; mso-line-height-rule: exactly; -ms-text-size-adjust: 100%; -webkit-text-size-adjust: 100%;">
+                                                <a href="${news.link}" target="_blank" style="mso-line-height-rule: exactly; -ms-text-size-adjust: 100%; -webkit-text-size-adjust: 100%; color: #991B4A; font-weight: bold; text-decoration: none;">
+                                                    <span style="font-size:15px">${news.title}</span>
+                                                </a>
+                                            </li>`).join('');
+
+                    // 返回完整的 HTML 骨架
+                    return `<!doctype html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="UTF-8">
+    <title>ChemLinked Japanメールマガジン ${mailData.issue}</title>
+</head>
+<body style="background-color: #DDDDDD; margin: 0; padding: 0;">
+    <center>
+        <table align="center" border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color: #DDDDDD; margin: 0; padding: 0; width: 100%;">
+            <tr>
+                <td align="center" valign="top" style="padding-top: 20px; padding-bottom: 20px;">
+                    
+                    <table border="0" cellpadding="0" cellspacing="0" width="600" style="background-color: #FFFFFF; width: 600px; max-width: 600px; border: 1px solid #D5D5D5;">
+                        <tr>
+                            <td align="left" valign="top" style="padding: 18px; text-align: left; font-family: Verdana, sans-serif; color: #202020; font-size: 14px; line-height: 150%;">
+                                
+                                <div style="text-align: center;">
+                                    <span style="font-size:15px">★ ChemLinked Japanメールマガジン ${mailData.issue} ★<br>
+                                    https://jp.chemlinked.com/<br>
+                                    ${mailData.date} 配信</span>
+                                </div>
+                                <br>
+                                
+                                <div style="text-align: center;">
+                                    <a href="${mailData.topSeminar.link}" target="_blank">
+                                        <img alt="${mailData.topSeminar.title}" src="${mailData.topSeminar.imgUrl}" width="553" style="max-width: 100%; display: inline-block; border: 0; height: auto;" />
+                                    </a>
+                                </div>
+                                <br><br>
+
+                                <div style="text-align: left;">
+                                    <span style="font-size:18px"><strong><span style="color:#8B4513">アジア太平洋地域</span></strong></span>
+                                </div>
+                                
+                                <ul style="margin: 0; padding: 10px 0 0 20px; text-align: left;">
+                                    ${newsLiHtml}
+                                </ul>
+                                
+                                <br><br><br>
+                                <div style="text-align: center; border-top: 1px dashed #cccccc; padding-top: 20px;">
+                                    <a href="*|UNSUB|*" style="color: #666666; font-size: 12px; text-decoration: underline;">メール配信停止（Unsubscribe）</a>
+                                </div>
+
+                            </td>
+                        </tr>
+                    </table>
+                    </td>
+            </tr>
+        </table>
+    </center>
+</body>
+</html>`;
+                })
+
+                // 一键复制功能
+                const copyHtml = async () => {
+                    try {
+                        await navigator.clipboard.writeText(generatedHtml.value)
+                        copyBtnText.value = '🎉 复制成功！去粘贴吧'
+                        setTimeout(() => { copyBtnText.value = '📋 一键复制 HTML 源码' }, 2000)
+                    } catch (err) {
+                        alert('复制失败，请手动全选复制代码区')
+                    }
+                }
+
+                return {
+                    mailData,
+                    addNews,
+                    removeNews,
+                    generatedHtml,
+                    copyHtml,
+                    copyBtnText
+                }
+            }
+        }).mount('#app')
+    </script>
+</body>
+</html>
