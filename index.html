@@ -3,217 +3,131 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ChemLinked 邮件生成器</title>
+    <title>ChemLinked 邮件营销工作台</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <style>
+        body {
+            background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%);
+            min-height: 100vh;
+        }
+    </style>
 </head>
-<body class="bg-gray-100 p-8">
-    <div id="app" class="max-w-7xl mx-auto flex gap-8">
+<body class="font-sans text-gray-800 pb-16">
+
+    <nav class="bg-white shadow-sm mb-10">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16 items-center">
+                <div class="flex items-center gap-3">
+                    <span class="text-2xl">🧪</span>
+                    <h1 class="text-xl font-bold text-gray-900">ChemLinked EDM Workspace</h1>
+                </div>
+                <div class="text-sm text-gray-500 bg-gray-100 px-3 py-1 rounded-full">
+                    内部工具 v2.0
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
-        <div class="w-[45%] bg-white p-6 rounded-lg shadow-md h-[85vh] overflow-y-auto">
-            <h2 class="text-2xl font-bold mb-6 text-gray-800">📝 邮件内容编辑</h2>
+        <div class="mb-12 text-center">
+            <h2 class="text-3xl font-extrabold text-gray-900 mb-4">欢迎使用邮件生成器</h2>
+            <p class="text-lg text-gray-600 max-w-2xl mx-auto">请先选择目标站点（日文/英文），然后点击对应的业务模板。在工具中填入文字后，即可一键生成适用于 Mailchimp 的代码。</p>
+        </div>
+
+        <div class="mb-16">
+            <div class="flex items-center gap-3 mb-6 border-b border-gray-300 pb-3">
+                <span class="text-3xl">🇯🇵</span>
+                <h2 class="text-2xl font-bold text-gray-800">日文站 (ChemLinked Japan)</h2>
+            </div>
             
-            <div class="mb-6">
-                <h3 class="text-lg font-semibold mb-3 border-b pb-2">基础信息</h3>
-                <div class="flex gap-4 mb-4">
-                    <div class="flex-1">
-                        <label class="block text-sm font-medium text-gray-700">期号</label>
-                        <input v-model="mailData.issue" type="text" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2">
-                    </div>
-                    <div class="flex-1">
-                        <label class="block text-sm font-medium text-gray-700">发布日期</label>
-                        <input v-model="mailData.date" type="text" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2">
-                    </div>
-                </div>
-            </div>
-
-            <div class="mb-6">
-                <h3 class="text-lg font-semibold mb-3 border-b pb-2">🌟 头条研讨会</h3>
-                <div class="mb-3">
-                    <label class="block text-sm font-medium text-gray-700">标题</label>
-                    <input v-model="mailData.topSeminar.title" type="text" class="mt-1 block w-full border border-gray-300 rounded-md p-2">
-                </div>
-                <div class="mb-3">
-                    <label class="block text-sm font-medium text-gray-700">跳转链接 (包含 redirect)</label>
-                    <input v-model="mailData.topSeminar.link" type="text" class="mt-1 block w-full border border-gray-300 rounded-md p-2">
-                </div>
-                <div class="mb-3">
-                    <label class="block text-sm font-medium text-gray-700">图片 URL (Content Studio链接)</label>
-                    <input v-model="mailData.topSeminar.imgUrl" type="text" class="mt-1 block w-full border border-gray-300 rounded-md p-2">
-                </div>
-            </div>
-
-            <div class="mb-6">
-                <div class="flex justify-between items-center mb-3 border-b pb-2">
-                    <h3 class="text-lg font-semibold">📰 亚洲太平洋地域新闻</h3>
-                    <button @click="addNews" class="bg-blue-500 text-white px-3 py-1 rounded text-sm hover:bg-blue-600">+ 添加新闻</button>
-                </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                 
-                <div v-for="(news, index) in mailData.newsList" :key="index" class="bg-gray-50 p-4 rounded-md mb-3 border border-gray-200">
-                    <div class="flex justify-between items-center mb-2">
-                        <span class="font-bold text-gray-600">新闻 {{ index + 1 }}</span>
-                        <button @click="removeNews(index)" class="text-red-500 text-sm hover:underline">删除</button>
+                <div class="bg-white rounded-xl shadow-sm overflow-hidden hover:shadow-lg transition-shadow duration-300 border border-gray-200 flex flex-col">
+                    <div class="p-6 flex-1">
+                        <div class="flex items-center justify-between mb-4">
+                            <span class="text-4xl">📰</span>
+                            <span class="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full font-semibold border border-green-200">已上线</span>
+                        </div>
+                        <h3 class="text-xl font-bold text-gray-900 mb-2">行业新闻双周报 (Newsletter)</h3>
+                        <p class="text-gray-500 text-sm mb-4">
+                            亚太区新闻资讯汇总，包含头条研讨会模块、动态新闻列表及 JCDB 联系方式。
+                        </p>
                     </div>
-                    <input v-model="news.title" type="text" placeholder="新闻标题" class="block w-full border border-gray-300 rounded-md p-2 mb-2">
-                    <input v-model="news.link" type="text" placeholder="文章链接" class="block w-full border border-gray-300 rounded-md p-2">
+                    <div class="bg-gray-50 px-6 py-4 border-t border-gray-100">
+                        <a href="./templates/jp/newsletter/index.html" class="block w-full text-center bg-blue-600 text-white font-semibold py-2 px-4 rounded-md hover:bg-blue-700 transition-colors">
+                            使用此模板 →
+                        </a>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-xl shadow-sm overflow-hidden opacity-80 border border-gray-200 flex flex-col">
+                    <div class="p-6 flex-1">
+                        <div class="flex items-center justify-between mb-4">
+                            <span class="text-4xl">🎟️</span>
+                            <span class="bg-orange-100 text-orange-800 text-xs px-2 py-1 rounded-full font-semibold border border-orange-200">开发中</span>
+                        </div>
+                        <h3 class="text-xl font-bold text-gray-900 mb-2">研讨会邀请函 (Webinar)</h3>
+                        <p class="text-gray-500 text-sm mb-4">
+                            专为线上研讨会设计，包含讲师介绍、日程表以及明显的“立即报名”按钮。
+                        </p>
+                    </div>
+                    <div class="bg-gray-50 px-6 py-4 border-t border-gray-100">
+                        <a href="./templates/jp/webinar/index.html" class="block w-full text-center bg-white border border-gray-300 text-gray-600 font-semibold py-2 px-4 rounded-md hover:bg-gray-50 transition-colors">
+                            进入开发预览
+                        </a>
+                    </div>
                 </div>
             </div>
         </div>
 
-        <div class="w-[55%] flex flex-col gap-4 h-[85vh]">
-            <div class="bg-white p-4 rounded-lg shadow-md flex justify-between items-center">
-                
-                <div class="flex bg-gray-100 p-1 rounded-lg">
-                    <button @click="viewMode = 'preview'" 
-                            :class="viewMode === 'preview' ? 'bg-white shadow text-blue-600' : 'text-gray-500 hover:text-gray-700'" 
-                            class="px-4 py-2 rounded-md font-bold text-sm transition-all duration-200">
-                        👀 实时预览
-                    </button>
-                    <button @click="viewMode = 'code'" 
-                            :class="viewMode === 'code' ? 'bg-white shadow text-blue-600' : 'text-gray-500 hover:text-gray-700'" 
-                            class="px-4 py-2 rounded-md font-bold text-sm transition-all duration-200">
-                        💻 HTML 源码
-                    </button>
-                </div>
-
-                <button @click="copyHtml" class="bg-green-600 text-white px-5 py-2 rounded-md font-bold text-sm hover:bg-green-700 transition shadow-sm">
-                    {{ copyBtnText }}
-                </button>
+        <div>
+            <div class="flex items-center gap-3 mb-6 border-b border-gray-300 pb-3">
+                <span class="text-3xl">🌐</span>
+                <h2 class="text-2xl font-bold text-gray-800">英文站 (ChemLinked Global)</h2>
             </div>
             
-            <div class="bg-gray-800 rounded-lg shadow-md p-1 flex-1 overflow-hidden relative border border-gray-300">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                 
-                <iframe v-if="viewMode === 'preview'" 
-                        :srcdoc="generatedHtml" 
-                        class="w-full h-full bg-white rounded bg-[url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAAOklEQVQYV2NkYGAwYkAD////Z4QxMARgEhkYGKEYxIEmD1YJ0whSCTYJViVIlWCVyJEgV4JUYhEJCgC/wA8x08T3LQAAAABJRU5ErkJggg==')]">
-                </iframe>
-                
-                <textarea v-else readonly class="w-full h-full bg-[#1e1e1e] text-[#d4d4d4] font-mono text-sm p-4 rounded border-none outline-none resize-none leading-relaxed">{{ generatedHtml }}</textarea>
-                
+                <div class="bg-white rounded-xl shadow-sm overflow-hidden opacity-80 border border-gray-200 flex flex-col">
+                    <div class="p-6 flex-1">
+                        <div class="flex items-center justify-between mb-4">
+                            <span class="text-4xl">📰</span>
+                            <span class="bg-orange-100 text-orange-800 text-xs px-2 py-1 rounded-full font-semibold border border-orange-200">开发中</span>
+                        </div>
+                        <h3 class="text-xl font-bold text-gray-900 mb-2">Global Newsletter</h3>
+                        <p class="text-gray-500 text-sm mb-4">
+                            面向英语圈客户的合规资讯汇总，采用全英文 UI 和特定的 Mailchimp Footer。
+                        </p>
+                    </div>
+                    <div class="bg-gray-50 px-6 py-4 border-t border-gray-100">
+                        <a href="./templates/en/newsletter/index.html" class="block w-full text-center bg-white border border-gray-300 text-gray-600 font-semibold py-2 px-4 rounded-md hover:bg-gray-50 transition-colors">
+                            进入开发预览
+                        </a>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-xl shadow-sm overflow-hidden opacity-80 border border-gray-200 flex flex-col">
+                    <div class="p-6 flex-1">
+                        <div class="flex items-center justify-between mb-4">
+                            <span class="text-4xl">🎙️</span>
+                            <span class="bg-orange-100 text-orange-800 text-xs px-2 py-1 rounded-full font-semibold border border-orange-200">开发中</span>
+                        </div>
+                        <h3 class="text-xl font-bold text-gray-900 mb-2">Webinar Invitation</h3>
+                        <p class="text-gray-500 text-sm mb-4">
+                            英文版在线研讨会邀请函，包含跨时区的日期显示提醒与 Zoom 报名链接入口。
+                        </p>
+                    </div>
+                    <div class="bg-gray-50 px-6 py-4 border-t border-gray-100">
+                        <a href="./templates/en/webinar/index.html" class="block w-full text-center bg-white border border-gray-300 text-gray-600 font-semibold py-2 px-4 rounded-md hover:bg-gray-50 transition-colors">
+                            进入开发预览
+                        </a>
+                    </div>
+                </div>
             </div>
         </div>
+        
+    </main>
 
-    </div>
-
-    <script>
-        const { createApp, ref, reactive, computed } = Vue
-
-        createApp({
-            setup() {
-                // 控制右侧显示模式：'preview' 或 'code'
-                const viewMode = ref('preview')
-                const copyBtnText = ref('📋 复制 HTML')
-                
-                // 定义响应式数据（默认数据）
-                const mailData = reactive({
-                    issue: '2026年4月前半号',
-                    date: '2026/04/10',
-                    topSeminar: {
-                        title: '中国「危険化学品安全法」を徹底解説',
-                        link: 'https://resource.chemlinked.com.cn/common/redirect.html?url=...',
-                        imgUrl: 'https://resource.chemlinked.com.cn/apeaced/20260519webinar-jp-banner-kkdik-cljp.png'
-                    },
-                    newsList: [
-                        { title: '台湾地区 PFHxS、その塩類および関連化合物に対する税関管理を強化', link: 'https://...' },
-                        { title: '日本　労働安全衛生法のラベル表示・ＳＤＳ対象物質を追加', link: 'https://...' }
-                    ]
-                })
-
-                // 添加一条新闻
-                const addNews = () => {
-                    mailData.newsList.push({ title: '', link: '' })
-                }
-
-                // 删除指定新闻
-                const removeNews = (index) => {
-                    mailData.newsList.splice(index, 1)
-                }
-
-                // 计算生成的 HTML
-                const generatedHtml = computed(() => {
-                    const newsLiHtml = mailData.newsList.map(news => `
-                                            <li style="text-align: left; margin-bottom: 5px; mso-line-height-rule: exactly; -ms-text-size-adjust: 100%; -webkit-text-size-adjust: 100%;">
-                                                <a href="${news.link}" target="_blank" style="mso-line-height-rule: exactly; -ms-text-size-adjust: 100%; -webkit-text-size-adjust: 100%; color: #991B4A; font-weight: bold; text-decoration: none;">
-                                                    <span style="font-size:15px">${news.title}</span>
-                                                </a>
-                                            </li>`).join('');
-
-                    return `<!doctype html>
-<html xmlns="http://www.w3.org/1999/xhtml">
-<head>
-    <meta charset="UTF-8">
-    <title>ChemLinked Japanメールマガジン ${mailData.issue}</title>
-</head>
-<body style="background-color: #DDDDDD; margin: 0; padding: 0;">
-    <center>
-        <table align="center" border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color: #DDDDDD; margin: 0; padding: 0; width: 100%; height: 100vh;">
-            <tr>
-                <td align="center" valign="top" style="padding-top: 20px; padding-bottom: 20px;">
-                    
-                    <table border="0" cellpadding="0" cellspacing="0" width="600" style="background-color: #FFFFFF; width: 600px; max-width: 600px; border: 1px solid #D5D5D5;">
-                        <tr>
-                            <td align="left" valign="top" style="padding: 18px; text-align: left; font-family: Verdana, sans-serif; color: #202020; font-size: 14px; line-height: 150%;">
-                                
-                                <div style="text-align: center;">
-                                    <span style="font-size:15px">★ ChemLinked Japanメールマガジン ${mailData.issue} ★<br>
-                                    https://jp.chemlinked.com/<br>
-                                    ${mailData.date} 配信</span>
-                                </div>
-                                <br>
-                                
-                                <div style="text-align: center;">
-                                    <a href="${mailData.topSeminar.link}" target="_blank">
-                                        <img alt="${mailData.topSeminar.title}" src="${mailData.topSeminar.imgUrl}" width="553" style="max-width: 100%; display: inline-block; border: 0; height: auto;" />
-                                    </a>
-                                </div>
-                                <br><br>
-
-                                <div style="text-align: left;">
-                                    <span style="font-size:18px"><strong><span style="color:#8B4513">アジア太平洋地域</span></strong></span>
-                                </div>
-                                
-                                <ul style="margin: 0; padding: 10px 0 0 20px; text-align: left;">
-                                    ${newsLiHtml}
-                                </ul>
-                                
-                                <br><br><br>
-                                <div style="text-align: center; border-top: 1px dashed #cccccc; padding-top: 20px;">
-                                    <a href="*|UNSUB|*" style="color: #666666; font-size: 12px; text-decoration: underline;">メール配信停止（Unsubscribe）</a>
-                                </div>
-
-                            </td>
-                        </tr>
-                    </table>
-                </td>
-            </tr>
-        </table>
-    </center>
-</body>
-</html>`;
-                })
-
-                // 一键复制功能
-                const copyHtml = async () => {
-                    try {
-                        await navigator.clipboard.writeText(generatedHtml.value)
-                        copyBtnText.value = '🎉 复制成功'
-                        setTimeout(() => { copyBtnText.value = '📋 复制 HTML' }, 2000)
-                    } catch (err) {
-                        alert('复制失败，请切换到源码视图全选复制')
-                    }
-                }
-
-                return {
-                    viewMode,
-                    mailData,
-                    addNews,
-                    removeNews,
-                    generatedHtml,
-                    copyHtml,
-                    copyBtnText
-                }
-            }
-        }).mount('#app')
-    </script>
 </body>
 </html>
