@@ -8,9 +8,9 @@
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
 </head>
 <body class="bg-gray-100 p-8">
-    <div id="app" class="max-w-6xl mx-auto flex gap-8">
+    <div id="app" class="max-w-7xl mx-auto flex gap-8">
         
-        <div class="w-1/2 bg-white p-6 rounded-lg shadow-md h-[85vh] overflow-y-auto">
+        <div class="w-[45%] bg-white p-6 rounded-lg shadow-md h-[85vh] overflow-y-auto">
             <h2 class="text-2xl font-bold mb-6 text-gray-800">📝 邮件内容编辑</h2>
             
             <div class="mb-6">
@@ -60,17 +60,36 @@
             </div>
         </div>
 
-        <div class="w-1/2 flex flex-col gap-4">
+        <div class="w-[55%] flex flex-col gap-4 h-[85vh]">
             <div class="bg-white p-4 rounded-lg shadow-md flex justify-between items-center">
-                <span class="text-gray-600 text-sm">✅ 内容编辑完成后，点击右侧按钮复制生成的代码。</span>
-                <button @click="copyHtml" class="bg-green-600 text-white px-6 py-2 rounded-md font-bold hover:bg-green-700 transition">
+                
+                <div class="flex bg-gray-100 p-1 rounded-lg">
+                    <button @click="viewMode = 'preview'" 
+                            :class="viewMode === 'preview' ? 'bg-white shadow text-blue-600' : 'text-gray-500 hover:text-gray-700'" 
+                            class="px-4 py-2 rounded-md font-bold text-sm transition-all duration-200">
+                        👀 实时预览
+                    </button>
+                    <button @click="viewMode = 'code'" 
+                            :class="viewMode === 'code' ? 'bg-white shadow text-blue-600' : 'text-gray-500 hover:text-gray-700'" 
+                            class="px-4 py-2 rounded-md font-bold text-sm transition-all duration-200">
+                        💻 HTML 源码
+                    </button>
+                </div>
+
+                <button @click="copyHtml" class="bg-green-600 text-white px-5 py-2 rounded-md font-bold text-sm hover:bg-green-700 transition shadow-sm">
                     {{ copyBtnText }}
                 </button>
             </div>
             
-            <div class="bg-gray-800 rounded-lg shadow-md p-4 flex-1 overflow-hidden flex flex-col">
-                <h3 class="text-gray-300 text-sm mb-2 font-mono">Mailchimp HTML 源代码 (只读)</h3>
-                <textarea readonly class="w-full h-full bg-gray-900 text-green-400 font-mono text-sm p-4 rounded border-none outline-none resize-none">{{ generatedHtml }}</textarea>
+            <div class="bg-gray-800 rounded-lg shadow-md p-1 flex-1 overflow-hidden relative border border-gray-300">
+                
+                <iframe v-if="viewMode === 'preview'" 
+                        :srcdoc="generatedHtml" 
+                        class="w-full h-full bg-white rounded bg-[url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAAOklEQVQYV2NkYGAwYkAD////Z4QxMARgEhkYGKEYxIEmD1YJ0whSCTYJViVIlWCVyJEgV4JUYhEJCgC/wA8x08T3LQAAAABJRU5ErkJggg==')]">
+                </iframe>
+                
+                <textarea v-else readonly class="w-full h-full bg-[#1e1e1e] text-[#d4d4d4] font-mono text-sm p-4 rounded border-none outline-none resize-none leading-relaxed">{{ generatedHtml }}</textarea>
+                
             </div>
         </div>
 
@@ -81,7 +100,9 @@
 
         createApp({
             setup() {
-                const copyBtnText = ref('📋 一键复制 HTML 源码')
+                // 控制右侧显示模式：'preview' 或 'code'
+                const viewMode = ref('preview')
+                const copyBtnText = ref('📋 复制 HTML')
                 
                 // 定义响应式数据（默认数据）
                 const mailData = reactive({
@@ -108,10 +129,8 @@
                     mailData.newsList.splice(index, 1)
                 }
 
-                // 计算生成的 HTML (修复了 600px 容器与左对齐问题)
+                // 计算生成的 HTML
                 const generatedHtml = computed(() => {
-                    
-                    // 动态生成新闻列表的 <li> 标签，增加了 text-align: left; 修正对齐
                     const newsLiHtml = mailData.newsList.map(news => `
                                             <li style="text-align: left; margin-bottom: 5px; mso-line-height-rule: exactly; -ms-text-size-adjust: 100%; -webkit-text-size-adjust: 100%;">
                                                 <a href="${news.link}" target="_blank" style="mso-line-height-rule: exactly; -ms-text-size-adjust: 100%; -webkit-text-size-adjust: 100%; color: #991B4A; font-weight: bold; text-decoration: none;">
@@ -119,7 +138,6 @@
                                                 </a>
                                             </li>`).join('');
 
-                    // 返回完整的 HTML 骨架
                     return `<!doctype html>
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head>
@@ -128,7 +146,7 @@
 </head>
 <body style="background-color: #DDDDDD; margin: 0; padding: 0;">
     <center>
-        <table align="center" border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color: #DDDDDD; margin: 0; padding: 0; width: 100%;">
+        <table align="center" border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color: #DDDDDD; margin: 0; padding: 0; width: 100%; height: 100vh;">
             <tr>
                 <td align="center" valign="top" style="padding-top: 20px; padding-bottom: 20px;">
                     
@@ -166,7 +184,7 @@
                             </td>
                         </tr>
                     </table>
-                    </td>
+                </td>
             </tr>
         </table>
     </center>
@@ -178,14 +196,15 @@
                 const copyHtml = async () => {
                     try {
                         await navigator.clipboard.writeText(generatedHtml.value)
-                        copyBtnText.value = '🎉 复制成功！去粘贴吧'
-                        setTimeout(() => { copyBtnText.value = '📋 一键复制 HTML 源码' }, 2000)
+                        copyBtnText.value = '🎉 复制成功'
+                        setTimeout(() => { copyBtnText.value = '📋 复制 HTML' }, 2000)
                     } catch (err) {
-                        alert('复制失败，请手动全选复制代码区')
+                        alert('复制失败，请切换到源码视图全选复制')
                     }
                 }
 
                 return {
+                    viewMode,
                     mailData,
                     addNews,
                     removeNews,
