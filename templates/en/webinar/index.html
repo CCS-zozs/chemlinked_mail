@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Webinar 邀请函生成器 - ChemLinked Global</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+</head>
+<body class="bg-gray-100 p-8">
+    <div id="app" class="max-w-7xl mx-auto flex gap-8">
+        
+        <div class="w-[45%] bg-white p-6 rounded-lg shadow-md h-[85vh] overflow-y-auto">
+            <div class="flex items-center gap-2 mb-6 border-b pb-4">
+                <span class="text-3xl">🎙️</span>
+                <h2 class="text-2xl font-bold text-gray-800">英文站webinar邀请函编辑</h2>
+            </div>
+            
+            <div class="mb-5">
+                <label class="block text-sm font-bold text-gray-700 mb-1">1. Webinar Title (大标题)</label>
+                <textarea v-model="mailData.title" rows="2" class="block w-full border border-gray-300 rounded-md p-2 text-sm"></textarea>
+            </div>
+
+            <div class="mb-5">
+                <label class="block text-sm font-bold text-gray-700 mb-1">2. Banner Image URL (主视觉海报链接)</label>
+                <input v-model="mailData.imgUrl" type="text" class="block w-full border border-gray-300 rounded-md p-2 text-sm">
+            </div>
+
+            <div class="mb-5 bg-gray-50 p-4 rounded-md border border-gray-200">
+                <label class="block text-sm font-bold text-gray-700 mb-2">3. WEBINAR INFO (灰色卡片信息)</label>
+                <div class="mb-2">
+                    <label class="block text-xs text-gray-600">Date (日期)</label>
+                    <input v-model="mailData.webinarDate" type="text" class="block w-full border border-gray-300 rounded-md p-1.5 text-sm">
+                </div>
+                <div class="mb-2">
+                    <label class="block text-xs text-gray-600">Time & Timezone (时间)</label>
+                    <input v-model="mailData.webinarTime" type="text" class="block w-full border border-gray-300 rounded-md p-1.5 text-sm">
+                </div>
+                <div>
+                    <label class="block text-xs text-gray-600">Duration (时长)</label>
+                    <input v-model="mailData.webinarDuration" type="text" class="block w-full border border-gray-300 rounded-md p-1.5 text-sm">
+                </div>
+            </div>
+
+            <div class="mb-5 bg-gray-50 p-4 rounded-md border border-gray-200">
+                <label class="block text-sm font-bold text-gray-700 mb-2">4. SPEAKER INFO (讲师头像与称谓)</label>
+                <div class="mb-2">
+                    <label class="block text-xs text-gray-600">Speaker Name (姓名)</label>
+                    <input v-model="mailData.speakerName" type="text" class="block w-full border border-gray-300 rounded-md p-1.5 text-sm">
+                </div>
+                <div class="mb-2">
+                    <label class="block text-xs text-gray-600">Speaker Title (职位头衔)</label>
+                    <input v-model="mailData.speakerTitle" type="text" class="block w-full border border-gray-300 rounded-md p-1.5 text-sm">
+                </div>
+                <div class="mb-2">
+                    <label class="block text-xs text-gray-600">Speaker Photo URL (头像链接)</label>
+                    <input v-model="mailData.speakerImg" type="text" class="block w-full border border-gray-300 rounded-md p-1.5 text-sm">
+                </div>
+                <div>
+                    <label class="block text-xs text-gray-600">Speaker Profile URL (讲师详情链接)</label>
+                    <input v-model="mailData.speakerLink" type="text" class="block w-full border border-gray-300 rounded-md p-1.5 text-sm">
+                </div>
+            </div>
+
+            <div class="mb-5">
+                <label class="block text-sm font-bold text-gray-700 mb-1">5. WEBINAR BACKGROUND (研讨会背景介绍)</label>
+                <textarea v-model="mailData.background" rows="5" class="block w-full border border-gray-300 rounded-md p-2 text-sm"></textarea>
+            </div>
+
+            <div class="mb-5 bg-gray-50 p-4 rounded-md border border-gray-200">
+                <div class="flex justify-between items-center mb-3">
+                    <label class="block text-sm font-bold text-gray-700">6. WEBINAR HIGHLIGHTS (要点列表)</label>
+                    <button @click="addAgenda" class="bg-blue-500 text-white px-2 py-1 rounded text-xs hover:bg-blue-600">+ 添加要点</button>
+                </div>
+                <div v-for="(item, index) in mailData.agendaList" :key="'agenda-'+index" class="flex gap-2 mb-2 items-center">
+                    <span class="text-gray-500 text-sm w-4">•</span>
+                    <input v-model="mailData.agendaList[index]" type="text" class="flex-1 border border-gray-300 rounded-md p-1.5 text-sm">
+                    <button @click="removeAgenda(index)" class="text-red-500 text-xs font-bold hover:underline">删除</button>
+                </div>
+            </div>
+
+            <div class="mb-5">
+                <label class="block text-sm font-bold text-gray-700 mb-1">7. SPEAKER INTRODUCTION (讲师详细文字介绍)</label>
+                <textarea v-model="mailData.speakerIntro" rows="4" class="block w-full border border-gray-300 rounded-md p-2 text-sm"></textarea>
+            </div>
+
+            <div class="mb-5 bg-gray-50 p-4 rounded-md border border-gray-200">
+                <div class="flex justify-between items-center mb-3">
+                    <label class="block text-sm font-bold text-gray-700">8. WEBINAR NOTES (下方的提示备注)</label>
+                    <button @click="addSchedule" class="bg-blue-500 text-white px-2 py-1 rounded text-xs hover:bg-blue-600">+ 添加备注</button>
+                </div>
+                <div v-for="(item, index) in mailData.scheduleList" :key="'schedule-'+index" class="flex gap-2 mb-2 items-center">
+                    <span class="text-gray-500 text-sm w-4">*</span>
+                    <input v-model="mailData.scheduleList[index]" type="text" class="flex-1 border border-gray-300 rounded-md p-1.5 text-sm">
+                    <button @click="removeSchedule(index)" class="text-red-500 text-xs font-bold hover:underline">删除</button>
+                </div>
+            </div>
+
+            <div class="mb-5 bg-gray-50 p-4 rounded-md border border-gray-200">
+                <label class="block text-sm font-bold text-gray-700 mb-2">9. CONTACT US & LINK (联系方式与报名链接)</label>
+                <div class="mb-2">
+                    <label class="block text-xs text-gray-600">Contact Email (企业邮箱)</label>
+                    <input v-model="mailData.contactEmail" type="text" class="block w-full border border-gray-300 rounded-md p-1.5 text-sm">
+                </div>
+                <div class="mb-2">
+                    <label class="block text-xs text-gray-600">Contact Phone (联系电话)</label>
+                    <input v-model="mailData.contactPhone" type="text" class="block w-full border border-gray-300 rounded-md p-1.5 text-sm">
+                </div>
+                <div>
+                    <label class="block text-xs text-gray-600">Register Link (报名按钮跳转超链接 URL)</label>
+                    <input v-model="mailData.btnLink" type="text" class="block w-full border border-gray-300 rounded-md p-1.5 text-sm">
+                </div>
+            </div>
+            
+        </div>
+
+        <div class="w-[55%] flex flex-col gap-4 h-[85vh]">
+            <div class="bg-white p-4 rounded-lg shadow-md flex justify-between items-center">
+                <div class="flex bg-gray-100 p-1 rounded-lg">
+                    <button @click="viewMode = 'preview'" 
+                            :class="viewMode === 'preview' ? 'bg-white shadow text-blue-600' : 'text-gray-500 hover:text-gray-700'" 
+                            class="px-4 py-2 rounded-md font-bold text-sm transition-all duration-200">
+                        👀 实时预览
+                    </button>
+                    <button @click="viewMode = 'code'" 
+                            :class="viewMode === 'code' ? 'bg-white shadow text-blue-600' : 'text-gray-500 hover:text-gray-700'" 
+                            class="px-4 py-2 rounded-md font-bold text-sm transition-all duration-200">
+                        💻 HTML 源码
+                    </button>
+                </div>
+                <button @click="copyHtml" class="bg-green-600 text-white px-5 py-2 rounded-md font-bold text-sm hover:bg-green-700 transition shadow-sm">
+                    {{ copyBtnText }}
+                </button>
+            </div>
+            
+            <div class="bg-gray-800 rounded-lg shadow-md p-1 flex-1 overflow-hidden relative border border-gray-300">
+                <iframe v-if="viewMode === 'preview'" 
+                        :srcdoc="generatedHtml" 
+                        class="w-full h-full bg-white rounded bg-[url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAAOklEQVQYV2NkYGAwYkAD////Z4QxMARgEhkYGKEYxIEmD1YJ0whSCTYJViVIlWCVyJEgV4JUYhEJCgC/wA8x08T3LQAAAABJRU5ErkJggg==')]">
+                </iframe>
+                <textarea v-else readonly class="w-full h-full bg-[#1e1e1e] text-[#d4d4d4] font-mono text-sm p-4 rounded border-none outline-none resize-none leading-relaxed">{{ generatedHtml }}</textarea>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        const { createApp, ref, reactive, computed } = Vue
+
+        createApp({
+            setup() {
+                const viewMode = ref('preview')
+                const copyBtnText = ref('📋 复制 HTML')
+                
+                // 数据初始化
+                const mailData = reactive({
+                    title: 'Interpretation of KKDIK New Policy and Compliance Strategies for Temporary Registration',
+                    imgUrl: 'https://mcusercontent.com/90f812c8598491dbd61143d91/images/fe8c7518-420d-f82f-086e-d3b520499dd6.jpg',
+                    webinarDate: 'May 20th, 2026',
+                    webinarTime: '21:00 (GMT+8)',
+                    webinarDuration: '1 Hour',
+                    speakerName: 'Stella Lu',
+                    speakerTitle: 'Regulatory Affairs Consultant',
+                    speakerImg: 'https://mcusercontent.com/90f812c8598491dbd61143d91/images/90d24311-eafe-92d7-39d8-36595836a2d3.png',
+                    speakerLink: 'https://chemical.chemlinked.com/experts/profile/401?utm_source=edm',
+                    background: 'The frequent updates to the KKDIK regulation—concerning registration deadlines, data requirements, and compliance pathways—have created significant uncertainty and strategic dilemmas for companies. Questions remain: How can companies lock in the most viable options within the tight timeframe for temporary registration? Is it necessary to begin preparing for full registration immediately after securing temporary status? How can companies balance compliance costs against time-related risks? What are the practical differences between various strategic approaches?\n\nThis webinar will provide a deep dive into the latest KKDIK policy developments. We will outline actionable strategies for the looming temporary registration deadline and offer valuable insights for high-tonnage full registration. Join us to clarify your compliance priorities and secure your firm\'s foothold in the Turkish market.',
+                    agendaList: [
+                        'Analysis of the latest KKDIK Policies and Compliance Requirements',
+                        'Strategies for the September 30 Mandatory Temporary Registration',
+                        'Uncertainties in Full Registration Deadlines and Compliance Recommendations',
+                        'Comparative Analysis of Pathways for Different Roles and Identities'
+                    ],
+                    speakerIntro: 'Stella Lu is an experienced regulatory consultant and has successfully assisted hundreds of enterprises with their compliance project under REACH Regulation. Actively in the SIEF of more than a thousand substances, Stella keeps good relationship with these LRs and is good at dealing with demanding cases including dispute.',
+                    scheduleList: [
+                        'To have a better chance of your questions being addressed during the webinar, you\'re welcome to email us the questions before the webinar.',
+                        'Please note that only the presentation slides will be available after the webinar, no video recording.'
+                    ],
+                    contactEmail: 'chemical@chemlinked.com',
+                    contactPhone: '+86 571 8769 9269',
+                    btnLink: 'https://chemical.chemlinked.com/new-webinar/Interpretation-of-KKDIK-New-Policy-and-Compliance-Strategies-for-Temporary-Registration?utm_source=edm'
+                })
+
+                const addAgenda = () => mailData.agendaList.push('')
+                const removeAgenda = (index) => mailData.agendaList.splice(index, 1)
+                const addSchedule = () => mailData.scheduleList.push('')
+                const removeSchedule = (index) => mailData.scheduleList.splice(index, 1)
+
+                const formatText = (text) => {
+                    if (!text) return '';
+                    return text.replace(/\n/g, '<br>');
+                }
+
+                // 生成核心 HTML
+                const generatedHtml = computed(() => {
+                    
+                    const agendaHtml = mailData.agendaList.map(item => `
+	<li style="mso-line-height-rule: exactly;-ms-text-size-adjust: 100%;-webkit-text-size-adjust: 100%;margin-bottom: 5px;"><span style="font-size:14px"><span style="font-family:arial,helvetica neue,helvetica,sans-serif">${item}</span></span></li>`).join('');
+
+                    const scheduleHtml = mailData.scheduleList.map(item => `
+	<li style="mso-line-height-rule: exactly;-ms-text-size-adjust: 100%;-webkit-text-size-adjust: 100%;margin-bottom: 5px;"><span style="font-size:14px"><span style="font-family:arial,helvetica neue,helvetica,sans-serif">${item}</span></span></li>`).join('');
+
+                    return `<!doctype html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office">
+    <head>
+		<meta charset="UTF-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+		<title>${mailData.title}</title>
+    <style type="text/css">
+		p{margin:10px 0;padding:0;}
+		table{border-collapse:collapse;}
+		h1,h2,h3,h4,h5,h6{display:block;margin:0;padding:0;}
+		img,a img{border:0;height:auto;outline:none;text-decoration:none;}
+		body,#bodyTable,#bodyCell{height:100%;margin:0;padding:0;width:100%;}
+		.mcnPreviewText{display:none !important;}
+		#outlook a{padding:0;}
+		img{-ms-interpolation-mode:bicubic;}
+		table{mso-table-lspace:0pt;mso-table-rspace:0pt;}
+		p,a,li,td,blockquote{mso-line-height-rule:exactly;}
+		p,a,li,td,body,table,blockquote{-ms-text-size-adjust:100%;-webkit-text-size-adjust:100%;}
+		.ExternalClass,.ExternalClass p,.ExternalClass td,.ExternalClass div,.ExternalClass span,.ExternalClass font{line-height:100%;}
+		a[x-apple-data-detectors]{color:inherit !important;text-decoration:none !important;font-size:inherit !important;font-family:inherit !important;font-weight:inherit !important;line-height:inherit !important;}
+		#bodyTable{background-color:#EAEAEA;}
+		h1{color:#000000 !important;font-family:Helvetica;font-size:50px;line-height:125%;text-align:center;}
+		h2{color:#404040 !important;font-family:Helvetica;font-size:20px;text-align:left;}
+		#templateContainer{border:0;}
+	</style>
+	</head>
+    <body style="height: 100%;margin: 0;padding: 0;width: 100%;background-color: #EAEAEA;">
+        <center>
+            <table align="center" border="0" cellpadding="0" cellspacing="0" height="100%" width="100%" id="bodyTable" style="border-collapse: collapse;background-color: #EAEAEA;">
+                <tr>
+                    <td align="center" valign="top" id="bodyCell" style="height: 100%;width: 100%;padding-top:20px;padding-bottom:20px;">
+                        
+                        <table border="0" cellpadding="0" cellspacing="0" width="600" id="templateContainer" style="border-collapse: collapse;background-color: #FFFFFF;width: 600px;max-width: 600px;">
+                            <tr>
+                                <td align="center" valign="top" style="background-color: #EAEAEA;padding: 9px 18px;">
+                                    <a href="*|ARCHIVE|*" target="_blank" style="color: #000000; font-family: 'Times New Roman'; font-size: 12px; text-decoration: underline;">View this email in your browser</a>
+                                </td>
+                            </tr>
+                            
+                            <tr>
+                                <td valign="top" style="padding: 18px 18px 0px 18px;">
+                                    <table align="left" border="0" cellpadding="0" cellspacing="0" width="150">
+                                        <tr>
+                                            <td align="left" valign="top">
+                                                <a href="https://chemlinked.com/" target="_blank">
+                                                    <img src="https://gallery.mailchimp.com/90f812c8598491dbd61143d91/images/54b978fe-4129-4640-9bd0-c5d8e9d7a7a0.jpg" width="150" style="max-width: 150px;border: 0;" />
+                                                </a>
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </td>
+                            </tr>
+
+                            <tr>
+                                <td valign="top" style="padding: 9px 18px 0px 18px; font-family: 'Times New Roman'; text-align: center;">
+                                    <div style="text-align: center;">
+                                        <span style="font-size:24px">
+                                            <span style="font-family:arial,helvetica neue,helvetica,sans-serif">
+                                                <strong>WEBINAR INVITATION</strong>
+                                            </span>
+                                        </span>
+                                    </div>
+                                </td>
+                            </tr>
+
+                            <tr>
+                                <td class="mcnDividerBlockInner" style="min-width: 100%; padding: 0px 18px 18px 18px;">
+                                    <table class="mcnDividerContent" border="0" cellpadding="0" cellspacing="0" width="100%" style="min-width: 100%; border-top: 12px groove #C3D4D2; border-collapse: collapse;">
+                                        <tbody>
+                                            <tr>
+                                                <td><span></span></td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </td>
+                            </tr>
+
+                            <tr>
+                                <td valign="top" style="padding: 0px 0px;">
+                                    <a href="${mailData.btnLink}" target="_blank">
+                                        <img alt="Webinar Banner" src="${mailData.imgUrl}" width="600" style="display: block; max-width: 600px; border: 0; width:100%;" />
+                                    </a>
+                                </td>
+                            </tr>
+
+                            <tr>
+                                <td valign="top" style="padding: 18px 18px 9px 18px; font-family: 'Times New Roman'; text-align: center;">
+                                    <span style="font-size:17px;font-family:arial,helvetica neue,helvetica,sans-serif;color:#006400;font-weight:bold;">
+                                        ${formatText(mailData.title)}
+                                    </span>
+                                </td>
+                            </tr>
+
+                            <tr>
+                                <td valign="top" style="padding: 9px 18px;">
+                                    <table align="left" border="0" cellpadding="0" cellspacing="0" width="273" style="background-color: #C3D4D2;float:left;margin-bottom:10px;">
+                                        <tr>
+                                            <td valign="top" style="padding: 18px; font-family: Helvetica, Arial, sans-serif; font-size: 14px; line-height: 150%;">
+                                                <span style="font-size:17px;font-family:arial,helvetica neue,helvetica,sans-serif;color:#FFFFFF;background-color:#008000;"><strong>&nbsp; WEBINAR INFO&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;</strong></span><br><br>
+                                                <strong style="color:#000000;font-family:arial,helvetica neue,helvetica,sans-serif;">
+                                                    <img src="https://mcusercontent.com/90f812c8598491dbd61143d91/images/27ba9b7a-03e6-6d63-c388-b67efb818849.png" width="35" style="vertical-align:middle;margin-right:8px;">${mailData.webinarDate}<br><br>
+                                                    <img src="https://mcusercontent.com/90f812c8598491dbd61143d91/images/275cd597-e486-246a-fda7-7dbbb3e586d5.png" width="32" style="vertical-align:middle;margin-right:10px;">${mailData.webinarTime}<br><br>
+                                                    <img src="https://mcusercontent.com/90f812c8598491dbd61143d91/images/b951a516-cd06-1235-9b2b-16c40a29126e.png" width="32" style="vertical-align:middle;margin-right:10px;">Duration: ${mailData.webinarDuration}
+                                                </strong>
+                                            </td>
+                                        </tr>
+                                    </table>
+
+                                    <table align="right" border="0" cellpadding="0" cellspacing="0" width="273" style="background-color: #C3D4D2;float:right;margin-bottom:10px;">
+                                        <tr>
+                                            <td valign="top" style="padding: 18px; font-family: Helvetica, Arial, sans-serif; font-size: 14px; line-height: 150%; text-align: center;">
+                                                <span style="color:#FFFFFF;font-size:17px;font-family:arial,helvetica neue,helvetica,sans-serif;"><strong><span style="background-color:#008000">&nbsp; SPEAKER&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp;</span></strong></span><br><br>
+                                                <a href="${mailData.speakerLink}" target="_blank">
+                                                    <img src="${mailData.speakerImg}" width="100" style="width: 100px; height: 100px; border:0;" />
+                                                </a><br>
+                                                <span style="font-size:14px;font-family:arial,helvetica neue,helvetica,sans-serif;color:#FF8C00;"><strong>${mailData.speakerName}</strong></span><br>
+                                                <span style="font-size:14px;color:#000000;font-family:arial,helvetica neue,helvetica,sans-serif;"><strong>${mailData.speakerTitle}</strong></span>
+                                            </td>
+                                        </tr>
+                                    </table>
+
+                                    </td>
+                            </tr>
+
+                            <tr>
+                                <td align="center" valign="top" style="padding: 9px 18px 18px 18px;">
+                                    <table border="0" cellpadding="0" cellspacing="0" style="background-color: #F4E9C5; border-radius: 4px; width: 100%;">
+                                        <tr>
+                                            <td align="center" valign="middle" style="font-family: Arial; font-size: 16px; padding: 15px;">
+                                                <a href="${mailData.btnLink}" target="_blank" style="font-weight: bold; text-decoration: none; color: #222222; display: block; text-align: center;">REGISTER NOW</a>
+                                            </td>
+                                        </tr>
+                                    </table>
+                                    <table border="0" cellpadding="0" cellspacing="0" width="100%" style="margin-top:18px;border-top: 2px solid #EAEAEA;"><tr><td></td></tr></table>
+                                </td>
+                            </tr>
+
+                            <tr>
+                                <td valign="top" style="padding: 9px 18px; font-family: 'Times New Roman'; text-align: left; color: #000000; font-size: 14px; line-height: 150%;">
+                                    <span style="color:#339933;font-size:14px;font-family:arial,helvetica neue,helvetica,sans-serif;"><strong>WEBINAR BACKGROUND</strong></span><br><br>
+                                    <span style="font-family:arial,helvetica neue,helvetica,sans-serif;">
+                                        ${formatText(mailData.background)}
+                                    </span>
+                                </td>
+                            </tr>
+
+                            <tr>
+                                <td valign="top" style="padding: 9px 18px; font-family: 'Times New Roman'; text-align: left; color: #000000; font-size: 14px; line-height: 150%;">
+                                    <span style="color:#339933;font-size:14px;font-family:arial,helvetica neue,helvetica,sans-serif;"><strong>WEBINAR HIGHLIGHTS</strong></span><br>
+                                    <ul style="margin-top: 10px; padding-left: 20px;">
+                                        ${agendaHtml}
+                                    </ul>
+                                </td>
+                            </tr>
+
+                            <tr>
+                                <td valign="top" style="padding: 9px 18px; font-family: 'Times New Roman'; text-align: left; color: #000000; font-size: 14px; line-height: 150%;">
+                                    <span style="color:#339933;font-size:14px;font-family:arial,helvetica neue,helvetica,sans-serif;"><strong>WEBINAR SPEAKER</strong></span><br><br>
+                                    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+                                        <tr>
+                                            <td width="132" align="left" valign="top">
+                                                <a href="${mailData.speakerLink}" target="_blank">
+                                                    <img src="${mailData.speakerImg}" width="132" style="max-width:132px;border:0;" />
+                                                </a>
+                                            </td>
+                                            <td align="left" valign="top" style="padding-left:15px; font-family:arial,helvetica neue,helvetica,sans-serif;">
+                                                ${formatText(mailData.speakerIntro)}
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </td>
+                            </tr>
+
+                            <tr>
+                                <td valign="top" style="padding: 9px 18px; font-family: arial, helvetica neue, helvetica, sans-serif; text-align: left; color: #808080; font-size: 13px; line-height: 150%;">
+                                    <ul style="margin: 0; padding-left: 15px;">
+                                        ${scheduleHtml}
+                                    </ul>
+                                    <table border="0" cellpadding="0" cellspacing="0" width="100%" style="margin-top:18px;border-top: 2px solid #EA5B3A;"><tr><td></td></tr></table>
+                                </td>
+                            </tr>
+
+                            <tr>
+                                <td valign="top" style="padding: 9px 18px; font-family: arial, helvetica neue, helvetica, sans-serif; text-align: left; color: #000000; font-size: 14px; line-height: 150%;">
+                                    <strong>CONTACT US</strong><br>
+                                    If you have any general queries, please reach out to us：<br>
+                                    ✉️ <a href="mailto:${mailData.contactEmail}" style="color: #006400; text-decoration: underline;">${mailData.contactEmail}</a><br>
+                                    📞 ${mailData.contactPhone}
+                                    <table border="0" cellpadding="0" cellspacing="0" width="100%" style="margin-top:18px;border-top: 2px dotted #EAEAEA;"><tr><td></td></tr></table>
+                                </td>
+                            </tr>
+
+                            <tr>
+                                <td align="center" valign="top" style="padding: 9px 18px 18px 18px;">
+                                    <table border="0" cellpadding="0" cellspacing="0" width="100%" style="border: 1px dotted #cccccc; padding: 10px 0;">
+                                        <tr>
+                                            <td align="center">
+                                                <a href="https://chemlinked.com/" target="_blank" style="margin: 0 5px;"><img src="https://animasmarketing.com/wp-content/uploads/2019/08/link-icon-png-6.png" width="24" height="24" style="display:inline-block;vertical-align:middle;width:24px;height:24px;"></a>
+                                                <a href="https://www.youtube.com/channel/UCow4E1CyH1gA1tpXNttgmbQ" target="_blank" style="margin: 0 5px;"><img src="https://cdn-images.mailchimp.com/icons/social-block-v2/color-youtube-48.png" width="24" height="24" style="display:inline-block;vertical-align:middle;width:24px;height:24px;"></a>
+                                                <a href="https://www.linkedin.com/groups/10375318/" target="_blank" style="margin: 0 5px;"><img src="https://cdn-images.mailchimp.com/icons/social-block-v2/color-linkedin-48.png" width="24" height="24" style="display:inline-block;vertical-align:middle;width:24px;height:24px;"></a>
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </td>
+                            </tr>
+
+                            <tr>
+                                <td align="center" valign="top" style="background-color: #EAEAEA; padding: 18px; font-family: 'Times New Roman'; font-size: 12px; color: #000000; line-height: 150%;">
+                                    <em>Copyright © 2026 ChemLinked, All rights reserved.</em><br>
+                                    You are receiving this email because of your interests in ChemLinked, a leading provider of global regulatory information and market intelligence across Chemical, Food, Cosmetic, Agrochemical, and Pharmaceutical industries.<br><br>
+                                    <strong>Our mailing address is:</strong><br>
+                                    ChemLinked<br>
+                                    10th Floor, C1, No. 76 North Longzhou Road, Yuhang District, Hangzhou, Zhejiang Province 311121 China<br><br>
+                                    Want to change how you receive these emails?<br>
+                                    You can <a href="*|UPDATE_PROFILE|*" style="color: #000000; text-decoration: underline;">update your preferences</a> or <a href="*|UNSUB|*" style="color: #000000; text-decoration: underline;">unsubscribe from this list</a>.
+                                </td>
+                            </tr>
+
+                        </table>
+                        
+                    </td>
+                </tr>
+            </table>
+        </center>
+    </body>
+</html>`;
+                })
+
+                const copyHtml = async () => {
+                    try {
+                        await navigator.clipboard.writeText(generatedHtml.value)
+                        copyBtnText.value = '🎉 复制成功'
+                        setTimeout(() => { copyBtnText.value = '📋 复制 HTML' }, 2000)
+                    } catch (err) {
+                        alert('复制失败，请切换到源码视图全选复制')
+                    }
+                }
+
+                return {
+                    viewMode,
+                    mailData,
+                    addAgenda,
+                    removeAgenda,
+                    addSchedule,
+                    removeSchedule,
+                    generatedHtml,
+                    copyHtml,
+                    copyBtnText
+                }
+            }
+        }).mount('#app')
+    </script>
+</body>
+</html>
