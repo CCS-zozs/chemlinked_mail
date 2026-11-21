@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ebook 速递邮件生成器 - ChemLinked Japan</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+</head>
+<body class="bg-gray-100 p-8">
+    <div class="max-w-7xl mx-auto mb-4">
+        <a href="../../../index.html" class="inline-flex items-center gap-1 text-sm text-gray-600 hover:text-blue-600 bg-white px-3 py-1.5 rounded-md shadow-sm">← 返回工作台</a>
+    </div>
+    <div id="app" class="max-w-7xl mx-auto flex gap-8">
+        
+        <!-- 左侧：编辑表单 -->
+        <div class="w-[45%] bg-white p-6 rounded-lg shadow-md h-[85vh] overflow-y-auto">
+            <div class="flex items-center gap-2 mb-6 border-b pb-4">
+                <span class="text-3xl">📚</span>
+                <h2 class="text-2xl font-bold text-gray-800">日文站 Ebook 速递编辑</h2>
+            </div>
+
+            <div class="mb-5">
+                <label class="block text-sm font-bold text-gray-700 mb-1">1. 邮件标题 (用于 &lt;title&gt; / 主题参考)</label>
+                <textarea v-model="mailData.title" rows="2" class="block w-full border border-gray-300 rounded-md p-2 text-sm"></textarea>
+            </div>
+
+            <div class="mb-5">
+                <label class="block text-sm font-bold text-gray-700 mb-1">2. 问候语</label>
+                <input v-model="mailData.greeting" type="text" class="block w-full border border-gray-300 rounded-md p-2 text-sm">
+            </div>
+
+            <div class="mb-5">
+                <label class="block text-sm font-bold text-gray-700 mb-1">3. 引言段落 (背景说明，支持 HTML)</label>
+                <textarea v-model="mailData.introText" rows="4" class="block w-full border border-gray-300 rounded-md p-2 text-sm"></textarea>
+            </div>
+
+            <div class="mb-5 bg-gray-50 p-4 rounded-md border border-gray-200">
+                <div class="flex justify-between items-center mb-3">
+                    <label class="block text-sm font-bold text-gray-700">4. 名录列表 (标准/Ebook 清单)</label>
+                    <button @click="addItem" class="bg-blue-500 text-white px-2 py-1 rounded text-xs hover:bg-blue-600">+ 添加条目</button>
+                </div>
+                <div v-for="(item, index) in mailData.listItems" :key="'item-'+index" class="flex gap-2 mb-2 items-center">
+                    <span class="text-gray-500 text-sm w-4">{{ index + 1 }}.</span>
+                    <input v-model="mailData.listItems[index]" type="text" class="flex-1 border border-gray-300 rounded-md p-1.5 text-sm">
+                    <button @click="removeItem(index)" class="text-red-500 text-xs font-bold hover:underline">删除</button>
+                </div>
+            </div>
+
+            <div class="mb-5">
+                <label class="block text-sm font-bold text-gray-700 mb-1">5. 补充说明段 (可选，支持 HTML)</label>
+                <textarea v-model="mailData.noteText" rows="4" class="block w-full border border-gray-300 rounded-md p-2 text-sm"></textarea>
+            </div>
+
+            <div class="mb-5">
+                <label class="block text-sm font-bold text-gray-700 mb-1">6. 引导标题行</label>
+                <input v-model="mailData.guideTitle" type="text" class="block w-full border border-gray-300 rounded-md p-2 text-sm">
+            </div>
+
+            <div class="mb-5 bg-gray-50 p-4 rounded-md border border-gray-200">
+                <div class="flex justify-between items-center mb-3">
+                    <label class="block text-sm font-bold text-gray-700">7. Ebook 卡片 (图左文右 + 按钮)</label>
+                    <button @click="addBook" class="bg-blue-500 text-white px-2 py-1 rounded text-xs hover:bg-blue-600">+ 添加 Ebook</button>
+                </div>
+                <div v-for="(book, index) in mailData.bookList" :key="'book-'+index" class="bg-white p-3 rounded-md mb-3 border border-gray-200">
+                    <div class="flex justify-between items-center mb-2">
+                        <span class="font-bold text-gray-600 text-sm">Ebook {{ index + 1 }}</span>
+                        <button @click="removeBook(index)" class="text-red-500 text-xs font-bold hover:underline">删除</button>
+                    </div>
+                    <div class="mb-2">
+                        <label class="block text-xs text-gray-600">封面图 URL</label>
+                        <input v-model="book.imgUrl" type="text" class="block w-full border border-gray-300 rounded-md p-1.5 text-sm">
+                    </div>
+                    <div class="mb-2">
+                        <label class="block text-xs text-gray-600">封面图跳转链接 (与按钮一致可留空)</label>
+                        <input v-model="book.imgLink" type="text" class="block w-full border border-gray-300 rounded-md p-1.5 text-sm">
+                    </div>
+                    <div class="mb-2">
+                        <label class="block text-xs text-gray-600">标题 (酒红色)</label>
+                        <input v-model="book.title" type="text" class="block w-full border border-gray-300 rounded-md p-1.5 text-sm">
+                    </div>
+                    <div class="mb-2">
+                        <label class="block text-xs text-gray-600">说明文字 (换行自动转 &lt;br&gt;，支持 HTML)</label>
+                        <textarea v-model="book.desc" rows="4" class="block w-full border border-gray-300 rounded-md p-1.5 text-sm"></textarea>
+                    </div>
+                    <div class="flex gap-2">
+                        <input v-model="book.btnText" type="text" placeholder="按钮文字" class="w-1/3 border border-gray-300 rounded-md p-1.5 text-sm">
+                        <input v-model="book.btnLink" type="text" placeholder="https://..." class="flex-1 border border-gray-300 rounded-md p-1.5 text-sm">
+                    </div>
+                </div>
+            </div>
+
+            <div class="mb-5 bg-gray-50 p-4 rounded-md border border-gray-200">
+                <label class="block text-sm font-bold text-gray-700 mb-2">8. UTM 追踪参数</label>
+                <label class="flex items-center gap-2 text-xs text-gray-600 mb-2">
+                    <input v-model="mailData.utmEnabled" type="checkbox" class="rounded">
+                    自动为 chemlinked.com 链接追加 utm 参数
+                </label>
+                <div>
+                    <label class="block text-xs text-gray-600">utm_campaign 值 (留空则只加 utm_source=edm)</label>
+                    <input v-model="mailData.utmCampaign" type="text" class="block w-full border border-gray-300 rounded-md p-1.5 text-sm">
+                </div>
+            </div>
+        </div>
+
+        <!-- 右侧：预览与源码 -->
+        <div class="w-[55%] h-[85vh] flex flex-col gap-4">
+            <div class="bg-white rounded-lg shadow-md p-4 flex items-center justify-between">
+                <div class="inline-flex bg-gray-100 rounded-lg p-1">
+                    <button @click="viewMode = 'preview'"
+                            :class="viewMode === 'preview' ? 'bg-white shadow text-blue-600' : 'text-gray-500 hover:text-gray-700'"
+                            class="px-4 py-1.5 text-sm font-semibold rounded-md transition-colors">👀 实时预览</button>
+                    <button @click="viewMode = 'code'"
+                            :class="viewMode === 'code' ? 'bg-white shadow text-blue-600' : 'text-gray-500 hover:text-gray-700'"
+                            class="px-4 py-1.5 text-sm font-semibold rounded-md transition-colors">💻 HTML 源码</button>
+                </div>
+                <button @click="copyHtml" class="bg-green-600 hover:bg-green-700 text-white text-sm font-semibold px-4 py-2 rounded-md transition-colors">{{ copyBtnText }}</button>
+            </div>
+            <iframe v-if="viewMode === 'preview'"
+                    :srcdoc="generatedHtml"
+                    class="w-full flex-1 bg-white rounded-lg shadow-md border border-gray-200"></iframe>
+            <textarea v-else readonly :value="generatedHtml"
+                      class="w-full flex-1 bg-gray-900 text-green-400 text-xs font-mono p-4 rounded-lg shadow-md"></textarea>
+        </div>
+    </div>
+
+    <script>
+        const { createApp, reactive, ref, computed } = Vue;
+
+        createApp({
+            setup() {
+                const viewMode = ref('preview');
+                const copyBtnText = ref('📋 复制 HTML');
+
+                const mailData = reactive({
+                    title: 'ChemLinked Japanメールマガジン　【新着Ebook】中国GB標準案 日本語訳3件',
+                    greeting: 'いつもご利用いただきありがとうございます。',
+                    introText: '中国では現在、化学品の分類・表示や接着剤中の有害物質規制に関する国家標準（GB）の見直しが進められています。\nChemLinked Japanでは、このたび以下3件の標準案について、日本語仮訳Ebookをご用意いたします。',
+                    listItems: [
+                        'GB 30000.7-202X 化学品の分類とラベル規範 第7部分：引火性液体',
+                        'GB 30000.15-20XX 化学品の分類とラベル規範 第15部分：酸化性固体',
+                        'GB XXXXX-XXXX 接着剤中の有害物質含有限度量（意見募集稿）'
+                    ],
+                    noteText: 'GB 30000.7-202X及びGB 30000.15-20XXは、国連GHS改訂第11版との整合を図るもので、引火性液体および酸化性固体の分類、危険有害性の伝達、ならびにラベル表示に適用されます。また、「一部強制」から「全面強制」へと移行する見込みです。',
+                    guideTitle: '▼ 日本語仮訳Ebookはこちら',
+                    bookList: [
+                        {
+                            imgUrl: 'https://mcusercontent.com/90f812c8598491dbd61143d91/images/a79dfec8-edd5-b582-5c50-2b28789e2c35.png',
+                            imgLink: '',
+                            title: 'GB 30000.7-202X 化学品の分類とラベル規範 第7部分：引火性液体',
+                            desc: '　2026年8月21日、GB 30000.7-202Xに関する意見募集の公告が発表されました。意見募集期間は2026年10月19日までとなります。\n　この標準は引火点および初留点のデータに基づいて引火性液体を4つの区分に分類します。国連GHS改訂第11版に合わせた絵表示（シンボル）、製品特定名義、注意書きコードの修正などが含まれます。',
+                            btnText: 'Ebookの詳細はこちら',
+                            btnLink: 'https://jp.chemlinked.com/epublication/gb-30000-7-202x'
+                        },
+                        {
+                            imgUrl: 'https://mcusercontent.com/90f812c8598491dbd61143d91/images/bb4b0c65-aa2d-73fe-149e-a9312e3ee054.png',
+                            imgLink: '',
+                            title: 'GB 30000.15-20XX 化学品の分類とラベル規範 第15部分：酸化性固体',
+                            desc: '　2026年8月21日、GB 30000.15-20XXに関する意見募集の公告が発表されました。意見募集期間は2026年10月19日までとなります。\n　同標準はセルロースと混合した際の燃焼時間または燃焼速度に基づいて酸化性固体を区分分類します。',
+                            btnText: 'Ebookの詳細はこちら',
+                            btnLink: 'https://jp.chemlinked.com/epublication/gb-30000-15-20xx'
+                        },
+                        {
+                            imgUrl: 'https://mcusercontent.com/90f812c8598491dbd61143d91/images/1410a188-2b36-21d1-90d1-fbc9df22e487.png',
+                            imgLink: '',
+                            title: 'GB XXXXX-XXXX 接着剤中の有害物質含有限度量（意見募集稿）',
+                            desc: '　本標準は現在まだ意見公募用草案の段階であり、最終的な公布日や施行日は定まっていません。草案では、13種類の有害物質または物質群に対する限度量が設定されています。',
+                            btnText: 'Ebookの詳細はこちら',
+                            btnLink: 'https://jp.chemlinked.com/epublication/gb-xxxxx-xxxx-limit-of-harmful-substances-in-adhesives-draft-for-comments'
+                        }
+                    ],
+                    utmEnabled: true,
+                    utmCampaign: ''
+                });
+
+                const addItem = () => mailData.listItems.push('');
+                const removeItem = (index) => mailData.listItems.splice(index, 1);
+                const addBook = () => mailData.bookList.push({ imgUrl: '', imgLink: '', title: '', desc: '', btnText: 'Ebookの詳細はこちら', btnLink: '' });
+                const removeBook = (index) => mailData.bookList.splice(index, 1);
+
+                // 换行转 <br>
+                const nl2br = (text) => {
+                    if (!text) return '';
+                    return text.replace(/\n/g, '<br>');
+                };
+
+                // 为 chemlinked.com 链接自动追加 UTM 参数
+                const withUtm = (link) => {
+                    if (!link) return '';
+                    if (!mailData.utmEnabled) return link;
+                    if (link.indexOf('chemlinked.com') === -1) return link;
+                    if (link.indexOf('utm_source=') !== -1) return link;
+                    const sep = link.indexOf('?') !== -1 ? '&' : '?';
+                    const campaign = (mailData.utmCampaign || '').trim();
+                    return link + sep + 'utm_source=edm' + (campaign ? '&utm_medium=email&utm_campaign=' + encodeURIComponent(campaign) : '');
+                };
+
+                // 生成核心 HTML
+                const generatedHtml = computed(() => {
+
+                    const listHtml = mailData.listItems.map(item => `<li style="margin-bottom: 5px;">${item}</li>`).join('');
+
+                    const bookHtml = mailData.bookList.map(b => {
+                        const imgLink = b.imgLink || b.btnLink;
+                        return `
+                    <table border="0" cellpadding="0" cellspacing="0" width="100%" style="border-collapse: collapse;">
+                        <tr>
+                            <td width="258" valign="top" style="padding: 9px 18px 9px 0;">
+                                <a href="${withUtm(imgLink)}" target="_blank"><img src="${b.imgUrl}" width="258" alt="${b.title}" style="max-width: 258px; width: 100%; border: 0; height: auto; display: block; -ms-interpolation-mode: bicubic;"></a>
+                            </td>
+                            <td valign="top" style="padding: 9px 0; color: #202020; font-family: Verdana, sans-serif; font-size: 14px; line-height: 150%; text-align: justify;">
+                                <div style="font-size: 18px; font-weight: bold; color: #991b4a; line-height: 130%; margin-bottom: 8px;">${b.title}</div>
+                                ${nl2br(b.desc)}
+                            </td>
+                        </tr>
+                    </table>
+                    <table border="0" cellpadding="0" cellspacing="0" align="center" style="border-collapse: separate !important; border-radius: 4px; background-color: #2baadf; margin-top: 9px;">
+                        <tr>
+                            <td align="center" valign="middle" style="font-family: Arial, sans-serif; font-size: 18px; padding: 14px 28px;">
+                                <a href="${withUtm(b.btnLink)}" target="_blank" style="font-weight: bold; letter-spacing: normal; line-height: 100%; text-align: center; text-decoration: none; color: #ffffff; display: block; mso-line-height-rule: exactly;">${b.btnText}</a>
+                            </td>
+                        </tr>
+                    </table>`;
+                    }).join(`
+                    <div style="border-top: 1px solid #eaeaea; margin: 18px 0; font-size: 1px; line-height: 1px;">&nbsp;</div>`);
+
+                    return `<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>${mailData.title}</title>
+</head>
+<body style="background-color: #dddddd; margin: 0; padding: 0;">
+    <center>
+        <table align="center" border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color: #dddddd; width: 100%;">
+            <tr>
+                <td align="center" valign="top" style="padding-top: 20px; padding-bottom: 20px;">
+                    <table border="0" cellpadding="0" cellspacing="0" width="600" style="background-color: #ffffff; width: 600px; max-width: 600px; border: 1px solid #d5d5d5;">
+                        <tr>
+                            <td align="left" valign="top" style="padding: 18px; text-align: left; font-family: Verdana, sans-serif; color: #202020; font-size: 14px; line-height: 150%;">
+
+                                <div style="text-align: center;">
+                                    <span style="font-size: 15px;">${mailData.greeting}<br>
+                                    ★ ChemLinked Japanメールマガジン ★<br>
+                                    https://jp.chemlinked.com/</span>
+                                </div>
+                                <br>
+                                <div style="border-top: 1px solid #eaeaea; margin: 9px 0; font-size: 1px; line-height: 1px;">&nbsp;</div>
+                                <br>
+
+                                <div style="text-align: justify;">
+                                    ${nl2br(mailData.introText)}
+                                </div>
+
+                                <ul style="margin: 10px 0 0; padding: 0 0 0 20px; text-align: left;">
+                                    ${listHtml}
+                                </ul>
+                                <br>
+
+                                ${mailData.noteText ? `<div style="text-align: justify;">${nl2br(mailData.noteText)}</div><br>` : ''}
+
+                                <div style="font-weight: bold; text-align: left;">${mailData.guideTitle}</div>
+                                <br><br>
+
+                                ${bookHtml}
+
+                                <br><br>
+
+                                <div style="text-align: center; margin-bottom: 15px;">
+                                    <h2 style="font-family: Verdana, sans-serif; font-size: 20px; font-weight: bold; color: #991B4A; margin: 0;">◎ChemLinked Japan活用のメリット◎</h2>
+                                </div>
+                                <div style="text-align: justify; margin-bottom: 25px; font-size: 14px; line-height: 150%;">
+                                    --------------------------------------------------------------------------<br>
+                                    ■ 現地の化学品、EHS、食品接触材料法規制最新情報をお届け！<br>
+                                    ■ 電子版データ、Webセミナー、レポートなどで法規制対応を支援！<br>
+                                    --------------------------------------------------------------------------<br>
+                                    中国を含むアジア太平洋地域において、化学品や食品接触材料、EHSで長年の法規制対応の経験を持つコンサルティング会社REACH24Hが運営する情報収集ツールです。<br><br>
+                                    会員区分及び利用規約は<a href="${withUtm('https://jp.chemlinked.com/membership')}" target="_blank" style="color: #991B4A; font-weight: bold; text-decoration: none;">こちら</a>
+                                </div>
+
+                                <table border="0" cellpadding="0" cellspacing="0" width="100%" style="margin-bottom: 30px;">
+                                    <tr>
+                                        <td align="center">
+                                            <table border="0" cellpadding="0" cellspacing="0" style="background-color: #4CAAD8;">
+                                                <tr>
+                                                    <td align="center" valign="middle" style="padding: 15px 30px;">
+                                                        <a href="${withUtm('https://jp.chemlinked.com/freetrial')}" target="_blank" style="font-family: Arial, sans-serif; font-size: 18px; font-weight: bold; color: #FFFFFF; text-decoration: none; display: block;">14日間無料体験をお申込みこちら</a>
+                                                    </td>
+                                                </tr>
+                                            </table>
+                                        </td>
+                                    </tr>
+                                </table>
+
+                                <div style="text-align: center; border-top: 1px dashed #cccccc; padding-top: 20px;">
+                                    <a href="*|UNSUB|*" style="color: #666666; font-size: 12px; text-decoration: underline;">メール配信停止（Unsubscribe）</a>
+                                </div>
+
+                            </td>
+                        </tr>
+                    </table>
+                </td>
+            </tr>
+        </table>
+    </center>
+</body>
+</html>`;
+                })
+
+                // 一键复制功能
+                const copyHtml = async () => {
+                    try {
+                        await navigator.clipboard.writeText(generatedHtml.value)
+                        copyBtnText.value = '🎉 复制成功'
+                        setTimeout(() => { copyBtnText.value = '📋 复制 HTML' }, 2000)
+                    } catch (err) {
+                        alert('复制失败，请切换到源码视图全选复制')
+                    }
+                }
+
+                return {
+                    viewMode,
+                    mailData,
+                    addItem,
+                    removeItem,
+                    addBook,
+                    removeBook,
+                    generatedHtml,
+                    copyHtml,
+                    copyBtnText
+                }
+            }
+        }).mount('#app')
+    </script>
+</body>
+</html>
