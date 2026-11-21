@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>专题速递邮件生成器 - ChemLinked Global</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+</head>
+<body class="bg-gray-100 p-8">
+    <div id="app" class="max-w-7xl mx-auto flex gap-8">
+        
+        <!-- 左侧：编辑表单 -->
+        <div class="w-[45%] bg-white p-6 rounded-lg shadow-md h-[85vh] overflow-y-auto">
+            <div class="flex items-center gap-2 mb-6 border-b pb-4">
+                <span class="text-3xl">📣</span>
+                <h2 class="text-2xl font-bold text-gray-800">英文站专题速递编辑</h2>
+            </div>
+
+            <div class="mb-5">
+                <label class="block text-sm font-bold text-gray-700 mb-1">1. 邮件标题 (大标题)</label>
+                <textarea v-model="mailData.title" rows="2" class="block w-full border border-gray-300 rounded-md p-2 text-sm"></textarea>
+            </div>
+
+            <div class="mb-5">
+                <label class="block text-sm font-bold text-gray-700 mb-1">2. Logo 图片 URL (页头左上角)</label>
+                <input v-model="mailData.logoUrl" type="text" class="block w-full border border-gray-300 rounded-md p-2 text-sm">
+            </div>
+
+            <div class="mb-5 bg-gray-50 p-4 rounded-md border border-gray-200">
+                <label class="block text-sm font-bold text-gray-700 mb-2">3. 导语区 (图左文右)</label>
+                <div class="mb-2">
+                    <label class="block text-xs text-gray-600">配图 URL (左侧约 264px 宽)</label>
+                    <input v-model="mailData.captionImgUrl" type="text" class="block w-full border border-gray-300 rounded-md p-1.5 text-sm">
+                </div>
+                <div class="mb-2">
+                    <label class="block text-xs text-gray-600">配图跳转链接</label>
+                    <input v-model="mailData.captionImgLink" type="text" class="block w-full border border-gray-300 rounded-md p-1.5 text-sm">
+                </div>
+                <div>
+                    <label class="block text-xs text-gray-600">导语文字 (支持基础 HTML，换行自动转 &lt;br&gt;)</label>
+                    <textarea v-model="mailData.captionText" rows="5" class="block w-full border border-gray-300 rounded-md p-1.5 text-sm"></textarea>
+                </div>
+            </div>
+
+            <div class="mb-5 bg-gray-50 p-4 rounded-md border border-gray-200">
+                <label class="block text-sm font-bold text-gray-700 mb-2">4. 主按钮 (绿色按钮)</label>
+                <div class="mb-2">
+                    <label class="block text-xs text-gray-600">按钮文字</label>
+                    <input v-model="mailData.btnText" type="text" class="block w-full border border-gray-300 rounded-md p-1.5 text-sm">
+                </div>
+                <div class="mb-2">
+                    <label class="block text-xs text-gray-600">按钮跳转链接</label>
+                    <input v-model="mailData.btnLink" type="text" class="block w-full border border-gray-300 rounded-md p-1.5 text-sm">
+                </div>
+                <label class="flex items-center gap-2 text-xs text-gray-600">
+                    <input v-model="mailData.btnRepeat" type="checkbox" class="rounded">
+                    要点卡片结束后再重复一次该按钮
+                </label>
+            </div>
+
+            <div class="mb-5 bg-gray-50 p-4 rounded-md border border-gray-200">
+                <div class="flex justify-between items-center mb-3">
+                    <label class="block text-sm font-bold text-gray-700">5. 要点卡片 (灰底块)</label>
+                    <button @click="addPoint" class="bg-blue-500 text-white px-2 py-1 rounded text-xs hover:bg-blue-600">+ 添加卡片</button>
+                </div>
+                <div v-for="(point, index) in mailData.pointList" :key="'point-'+index" class="bg-white p-3 rounded-md mb-3 border border-gray-200">
+                    <div class="flex justify-between items-center mb-2">
+                        <span class="font-bold text-gray-600 text-sm">卡片 {{ index + 1 }}</span>
+                        <button @click="removePoint(index)" class="text-red-500 text-xs font-bold hover:underline">删除</button>
+                    </div>
+                    <input v-model="point.title" type="text" placeholder="卡片小标题（居中显示）" class="block w-full border border-gray-300 rounded-md p-1.5 text-sm mb-2">
+                    <textarea v-model="point.content" rows="4" placeholder="卡片正文，换行自动转 <br>，支持 <strong>、▌ 分点等写法" class="block w-full border border-gray-300 rounded-md p-1.5 text-sm"></textarea>
+                </div>
+            </div>
+
+            <div class="mb-5 bg-gray-50 p-4 rounded-md border border-gray-200">
+                <div class="flex justify-between items-center mb-3">
+                    <label class="block text-sm font-bold text-gray-700">6. 相关资源列表</label>
+                    <button @click="addResource" class="bg-blue-500 text-white px-2 py-1 rounded text-xs hover:bg-blue-600">+ 添加资源</button>
+                </div>
+                <div v-for="(res, index) in mailData.resourceList" :key="'res-'+index" class="bg-white p-3 rounded-md mb-3 border border-gray-200">
+                    <div class="flex justify-between items-center mb-2">
+                        <span class="font-bold text-gray-600 text-sm">资源 {{ index + 1 }}</span>
+                        <button @click="removeResource(index)" class="text-red-500 text-xs font-bold hover:underline">删除</button>
+                    </div>
+                    <div class="flex gap-2 mb-2">
+                        <input v-model="res.label" type="text" placeholder="[News]" class="w-1/3 border border-gray-300 rounded-md p-1.5 text-sm">
+                        <input v-model="res.title" type="text" placeholder="资源标题" class="flex-1 border border-gray-300 rounded-md p-1.5 text-sm">
+                    </div>
+                    <input v-model="res.link" type="text" placeholder="https://..." class="block w-full border border-gray-300 rounded-md p-1.5 text-sm">
+                </div>
+            </div>
+
+            <div class="mb-5 bg-gray-50 p-4 rounded-md border border-gray-200">
+                <label class="block text-sm font-bold text-gray-700 mb-2">7. UTM 追踪参数</label>
+                <label class="flex items-center gap-2 text-xs text-gray-600 mb-2">
+                    <input v-model="mailData.utmEnabled" type="checkbox" class="rounded">
+                    自动为 chemlinked.com 链接追加 utm 参数
+                </label>
+                <div>
+                    <label class="block text-xs text-gray-600">utm_campaign 值 (如发送日期 2026-11-19)</label>
+                    <input v-model="mailData.utmCampaign" type="text" class="block w-full border border-gray-300 rounded-md p-1.5 text-sm">
+                </div>
+            </div>
+        </div>
+
+        <!-- 右侧：预览与源码 -->
+        <div class="w-[55%] h-[85vh] flex flex-col gap-4">
+            <div class="bg-white rounded-lg shadow-md p-4 flex items-center justify-between">
+                <div class="inline-flex bg-gray-100 rounded-lg p-1">
+                    <button @click="viewMode = 'preview'"
+                            :class="viewMode === 'preview' ? 'bg-white shadow text-blue-600' : 'text-gray-500 hover:text-gray-700'"
+                            class="px-4 py-1.5 text-sm font-semibold rounded-md transition-colors">👀 实时预览</button>
+                    <button @click="viewMode = 'code'"
+                            :class="viewMode === 'code' ? 'bg-white shadow text-blue-600' : 'text-gray-500 hover:text-gray-700'"
+                            class="px-4 py-1.5 text-sm font-semibold rounded-md transition-colors">💻 HTML 源码</button>
+                </div>
+                <button @click="copyHtml" class="bg-green-600 hover:bg-green-700 text-white text-sm font-semibold px-4 py-2 rounded-md transition-colors">{{ copyBtnText }}</button>
+            </div>
+            <iframe v-if="viewMode === 'preview'"
+                    :srcdoc="generatedHtml"
+                    class="w-full flex-1 bg-white rounded-lg shadow-md border border-gray-200"></iframe>
+            <textarea v-else readonly :value="generatedHtml"
+                      class="w-full flex-1 bg-gray-900 text-green-400 text-xs font-mono p-4 rounded-lg shadow-md"></textarea>
+        </div>
+    </div>
+
+    <script>
+        const { createApp, reactive, ref, computed } = Vue;
+
+        createApp({
+            setup() {
+                const viewMode = ref('preview');
+                const copyBtnText = ref('📋 复制 HTML');
+
+                const mailData = reactive({
+                    title: 'Ukraine Proposes Major Compliance Deadline Extensions under UA REACH and UA CLP',
+                    logoUrl: 'https://mcusercontent.com/90f812c8598491dbd61143d91/images/458001ba-d045-bc3d-ad49-648b12e9d79b.png',
+                    logoLink: 'https://chemlinked.com/',
+                    captionImgUrl: 'https://mcusercontent.com/90f812c8598491dbd61143d91/images/37aeb999-5828-a6a6-9e24-a4484271cf5f.jpg',
+                    captionImgLink: 'https://chemical.chemlinked.com/news/chemical-news/ukraine-proposes-major-compliance-deadline-extensions-under-ua-reach-and-ua-clp-1794795985',
+                    captionText: "On 5 November 2026, Ukraine published a draft resolution of the Cabinet of Ministers proposing significant amendments to the country's two critical chemical legislation pieces: Technical Regulation on Classification, Labelling and Packaging of Chemical Products (UA CLP) and Technical Regulation on the Safety of Chemical Products (UA REACH).\nThe draft resolution extends several key transitional periods and compliance deadlines, providing chemical industry operators with essential buffer time.",
+                    btnText: 'Explore More',
+                    btnLink: 'https://chemical.chemlinked.com/news/chemical-news/ukraine-proposes-major-compliance-deadline-extensions-under-ua-reach-and-ua-clp-1794795985',
+                    btnRepeat: true,
+                    pointList: [
+                        {
+                            title: 'UA REACH Deadlines',
+                            content: "The transitional grace period for chemical products already placed on the market before the regulation's entry into force is proposed to be extended from the original timeframe to 42 months (reaching <strong>26 July 2028</strong>). Consequently, the pre-registration deadline is postponed from 26 January 2027 to <strong>26 July 2028</strong>. The draft maintains the existing full registration deadlines for subsequent phases without adjustment."
+                        },
+                        {
+                            title: 'UA CLP Transitional Arrangements',
+                            content: 'The transitional period for chemicals placed on the market prior to the entry into force of the regulation is extended to <strong>5 December 2028</strong>. Specifically, the proposed deadline for UA CLP hazard classification notification and label update obligations is aligned with this new timeline.'
+                        },
+                        {
+                            title: 'What You Should Do Now',
+                            content: "▌<strong>Maintain the current compliance pace</strong><br>Treat the proposed postponement as a potential buffer rather than a cancellation of obligations, and continue advancing preparatory work according to the existing deadlines, especially pre-registration and C&L notification-related work.\n▌<strong>Closely monitor official developments</strong><br>Track official releases from the Ministry of Economy and Environment of Ukraine and the final adoption of the draft."
+                        }
+                    ],
+                    resourceList: [
+                        { label: '[News]', title: 'Ukraine Proposes Amendments to Chemical Safety Law to Align with Minamata Convention and EU Requirements', link: 'https://chemical.chemlinked.com/news/chemical-news/ukraine-proposes-amendments-to-chemical-safety-law-to-align-with-minamata-convention-and-eu-requirements' },
+                        { label: '[News]', title: 'Ukraine Publishes Draft Procedure for State Registration of Chemical Substances', link: 'https://chemical.chemlinked.com/news/chemical-news/ukraine-publishes-draft-procedure-for-state-registration-of-chemical-substances' },
+                        { label: '[Webinar]', title: 'Decoding Ukraine REACH: Ensuring Compliance in the Chemical Supply Chain', link: 'https://chemical.chemlinked.com/new-webinar/decoding-ukraine-reach-ensuring-compliance-in-the-chemical-supply-chain' },
+                        { label: '[Chempedia]', title: 'Ukraine REACH', link: 'https://chemical.chemlinked.com/chempedia/ukraine-reach' },
+                        { label: '[English Translation]', title: 'Ukraine REACH: Resolution No.847 On Approval of the Technical Regulation on the Safety of Chemical Products', link: 'https://chemical.chemlinked.com/database/view/2156' },
+                        { label: '[English Translation]', title: 'Ukraine REACH: Technical Regulation on the Safety of Chemical Products', link: 'https://chemical.chemlinked.com/database/view/2157' }
+                    ],
+                    utmEnabled: true,
+                    utmCampaign: '2026-11-19'
+                });
+
+                const addPoint = () => mailData.pointList.push({ title: '', content: '' });
+                const removePoint = (index) => mailData.pointList.splice(index, 1);
+                const addResource = () => mailData.resourceList.push({ label: '[News]', title: '', link: '' });
+                const removeResource = (index) => mailData.resourceList.splice(index, 1);
+
+                // 换行转 <br>
+                const nl2br = (text) => {
+                    if (!text) return '';
+                    return text.replace(/\n/g, '<br>');
+                };
+
+                // 为 chemlinked.com 链接自动追加 UTM 参数
+                const withUtm = (link) => {
+                    if (!link) return '';
+                    if (!mailData.utmEnabled) return link;
+                    if (link.indexOf('chemlinked.com') === -1) return link;
+                    if (link.indexOf('utm_source=') !== -1) return link;
+                    const sep = link.indexOf('?') !== -1 ? '&' : '?';
+                    return link + sep + 'utm_source=edm&utm_medium=email&utm_campaign=' + encodeURIComponent(mailData.utmCampaign || '');
+                };
+
+                // 生成核心 HTML
+                const generatedHtml = computed(() => {
+
+                    const pointHtml = mailData.pointList.map(p => `
+                    <table border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color: #f2f2f2; border-collapse: collapse;">
+                        <tr>
+                            <td style="padding: 18px; color: #222222; font-family: Helvetica, Arial, sans-serif; font-size: 14px; line-height: 150%; text-align: justify; mso-line-height-rule: exactly;">
+                                <div style="text-align: center;"><span style="font-size: 16px; color: #000000;"><strong>${p.title}</strong></span></div>
+                                <br>
+                                ${nl2br(p.content)}
+                            </td>
+                        </tr>
+                    </table>
+                    <div style="height: 18px; line-height: 18px; font-size: 0;">&nbsp;</div>`).join('');
+
+                    const resourceHtml = mailData.resourceList.map(r => `
+                    <span style="color: #000000;">${r.label}:&nbsp;</span><a href="${withUtm(r.link)}" target="_blank" style="color: #37a833; font-weight: bold; text-decoration: underline; mso-line-height-rule: exactly;">${r.title}</a>`).join('<br>');
+
+                    const btnHtml = `
+                    <table border="0" cellpadding="0" cellspacing="0" align="center" style="border-collapse: separate !important; border-radius: 4px; background-color: #2b8128;">
+                        <tr>
+                            <td align="center" valign="middle" style="font-family: Arial, Helvetica, sans-serif; font-size: 16px; padding: 18px;">
+                                <a href="${withUtm(mailData.btnLink)}" target="_blank" style="font-weight: bold; letter-spacing: normal; line-height: 100%; text-align: center; text-decoration: none; color: #ffffff; display: block; mso-line-height-rule: exactly;">${mailData.btnText}</a>
+                            </td>
+                        </tr>
+                    </table>
+                    <div style="height: 18px; line-height: 18px; font-size: 0;">&nbsp;</div>`;
+
+                    const dividerHtml = `
+                    <table border="0" cellpadding="0" cellspacing="0" width="100%" style="border-collapse: collapse;">
+                        <tr>
+                            <td style="padding: 18px 9px;">
+                                <div style="border-top: 2px solid #eaeaea; font-size: 1px; line-height: 2px;">&nbsp;</div>
+                            </td>
+                        </tr>
+                    </table>`;
+
+                    return `<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>${mailData.title}</title>
+</head>
+<body style="background-color: #f7f7f7; margin: 0; padding: 0; height: 100%; width: 100%;">
+    <center>
+        <table align="center" border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color: #f7f7f7; width: 100%; height: 100%;">
+            <tr>
+                <td align="center" valign="top" style="padding: 20px 10px;">
+
+                    <table border="0" cellpadding="0" cellspacing="0" width="600" style="width: 600px; max-width: 600px; border-collapse: collapse;">
+
+                        <!-- 页头：Logo -->
+                        <tr>
+                            <td align="left" valign="top" style="background-color: #f7f7f7; padding: 11px 18px 0;">
+                                <a href="${withUtm(mailData.logoLink)}" target="_blank"><img src="${mailData.logoUrl}" width="163" alt="ChemLinked" style="border: 0; height: auto; display: inline-block; outline: none; text-decoration: none; -ms-interpolation-mode: bicubic;"></a>
+                            </td>
+                        </tr>
+
+                        <!-- 正文 -->
+                        <tr>
+                            <td align="left" valign="top" style="background-color: #ffffff; padding: 25px 18px 34px;">
+
+                                <h3 style="text-align: center; display: block; margin: 0 0 18px; padding: 0; color: #444444; font-family: Helvetica, Arial, sans-serif; font-size: 19px; font-weight: bold; line-height: 150%;">${mailData.title}</h3>
+
+                                <table border="0" cellpadding="0" cellspacing="0" width="100%" style="border-collapse: collapse;">
+                                    <tr>
+                                        <td width="264" valign="top" style="padding: 9px;">
+                                            <a href="${withUtm(mailData.captionImgLink)}" target="_blank"><img src="${mailData.captionImgUrl}" width="264" alt="" style="max-width: 264px; width: 100%; border: 0; height: auto; display: block; -ms-interpolation-mode: bicubic;"></a>
+                                        </td>
+                                        <td valign="top" style="padding: 9px; color: #222222; font-family: Arial, Helvetica, sans-serif; font-size: 14px; line-height: 150%; text-align: justify;">
+                                            ${nl2br(mailData.captionText)}
+                                        </td>
+                                    </tr>
+                                </table>
+
+                                <div style="height: 9px; line-height: 9px; font-size: 0;">&nbsp;</div>
+                                ${btnHtml}
+                                ${dividerHtml}
+                                ${pointHtml}
+                                ${mailData.btnRepeat ? btnHtml : ''}
+
+                                ${dividerHtml}
+
+                                <!-- 相关资源 -->
+                                <div style="color: #222222; font-family: Helvetica, Arial, sans-serif; font-size: 16px; line-height: 150%; text-align: left; padding: 0 9px;">
+                                    <strong style="color: #000000;">More Related Resources on ChemLinked</strong>
+                                    <br><br>
+                                    <span style="font-size: 14px; font-family: Arial, Helvetica, sans-serif;">
+                                        ${resourceHtml}
+                                    </span>
+                                </div>
+
+                            </td>
+                        </tr>
+
+                        <!-- 页脚 -->
+                        <tr>
+                            <td align="center" valign="top" style="background-color: #333333; padding: 20px 18px 40px;">
+
+                                <div style="text-align: center; padding-bottom: 12px;">
+                                    <a href="*|ARCHIVE|*" target="_blank" style="color: #ffffff; font-family: Helvetica, Arial, sans-serif; font-size: 12px; text-decoration: underline;">View this email in your browser</a>
+                                </div>
+
+                                <table border="0" cellpadding="0" cellspacing="0" align="center" style="border-collapse: collapse;">
+                                    <tr>
+                                        <td style="padding: 0 5px;"><a href="https://www.linkedin.com/company/chemlinked" target="_blank"><img src="https://cdn-images.mailchimp.com/icons/social-block-v2/outline-light-linkedin-48.png" width="24" height="24" alt="LinkedIn" style="display: block; border: 0;"></a></td>
+                                        <td style="padding: 0 5px;"><a href="https://twitter.com/chemlinked" target="_blank"><img src="https://cdn-images.mailchimp.com/icons/social-block-v2/outline-light-twitter-48.png" width="24" height="24" alt="Twitter" style="display: block; border: 0;"></a></td>
+                                        <td style="padding: 0 5px;"><a href="*|FORWARD|*" target="_blank"><img src="https://cdn-images.mailchimp.com/icons/social-block-v2/outline-light-forwardtofriend-48.png" width="24" height="24" alt="Forward" style="display: block; border: 0;"></a></td>
+                                        <td style="padding: 0 5px;"><a href="https://chemlinked.com/" target="_blank"><img src="https://cdn-images.mailchimp.com/icons/social-block-v2/outline-light-link-48.png" width="24" height="24" alt="Website" style="display: block; border: 0;"></a></td>
+                                    </tr>
+                                </table>
+
+                                <div style="color: #ffffff; font-family: Helvetica, Arial, sans-serif; font-size: 12px; line-height: 150%; text-align: center; padding-top: 18px;">
+                                    <em>Copyright © 2026 ChemLinked, All rights reserved.</em><br>
+                                    You are receiving this email because of your interests in ChemLinked, a leading provider of global regulatory information and market intelligence across Chemical, Food, Cosmetic, Agrochemical, and Pharmaceutical industries.<br><br>
+                                    <strong>Our mailing address is:</strong><br>
+                                    ChemLinked<br>
+                                    10th Floor, C1, No. 76 North Longzhou Road, Yuhang District, Hangzhou, Zhejiang Province 311121 China<br><br>
+                                    Want to change how you receive these emails?<br>
+                                    You can <a href="*|UPDATE_PROFILE|*" style="color: #ffffff; text-decoration: underline;">update your preferences</a> or <a href="*|UNSUB|*" style="color: #ffffff; text-decoration: underline;">unsubscribe from this list</a>.
+                                </div>
+
+                            </td>
+                        </tr>
+
+                    </table>
+
+                </td>
+            </tr>
+        </table>
+    </center>
+</body>
+</html>`;
+                })
+
+                // 一键复制功能
+                const copyHtml = async () => {
+                    try {
+                        await navigator.clipboard.writeText(generatedHtml.value)
+                        copyBtnText.value = '🎉 复制成功'
+                        setTimeout(() => { copyBtnText.value = '📋 复制 HTML' }, 2000)
+                    } catch (err) {
+                        alert('复制失败，请切换到源码视图全选复制')
+                    }
+                }
+
+                return {
+                    viewMode,
+                    mailData,
+                    addPoint,
+                    removePoint,
+                    addResource,
+                    removeResource,
+                    generatedHtml,
+                    copyHtml,
+                    copyBtnText
+                }
+            }
+        }).mount('#app')
+    </script>
+</body>
+</html>
+
