@@ -3,203 +3,281 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ChemLinked 邮件营销工作台</title>
+    <title>ChemLinked EDM 工作台</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
+        :root {
+            --ink: #1C2B33;
+            --bench: #F6F7F5;
+            --rule: #D8DDE0;
+            --jp: #991B4A;
+            --gl: #2E7D32;
+            --brass: #B98900;
+        }
         body {
-            background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%);
-            min-height: 100vh;
+            background: var(--bench);
+            color: var(--ink);
+            font-family: 'IBM Plex Sans', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+        }
+        .mono { font-family: 'IBM Plex Mono', 'PingFang SC', monospace; }
+
+        /* 卡片：刻线描边，悬停浮现站点色顶线 */
+        .card {
+            background: #fff;
+            border: 1px solid var(--rule);
+            border-radius: 8px;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            transition: box-shadow .15s ease, transform .15s ease;
+        }
+        .card::before {
+            content: '';
+            position: absolute; top: 0; left: 0; right: 0;
+            height: 3px; background: transparent;
+            transition: background .15s ease;
+        }
+        .card:hover { box-shadow: 0 8px 24px rgba(28,43,51,.10); transform: translateY(-2px); }
+        .card.jp:hover::before { background: var(--jp); }
+        .card.gl:hover::before { background: var(--gl); }
+
+        .iconbox { width: 44px; height: 44px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 22px; }
+        .iconbox.jp { background: rgba(153,27,74,.08); }
+        .iconbox.gl { background: rgba(46,125,50,.08); }
+
+        /* 按钮：幽灵态 → 悬停填充站点色 */
+        .btn { display: block; text-align: center; border-radius: 6px; padding: 9px 12px; font-weight: 600; font-size: 14px; transition: all .15s ease; border: 1px solid; }
+        .btn-jp { color: var(--jp); border-color: var(--jp); background: transparent; }
+        .btn-jp:hover { background: var(--jp); color: #fff; }
+        .btn-gl { color: var(--gl); border-color: var(--gl); background: transparent; }
+        .btn-gl:hover { background: var(--gl); color: #fff; }
+
+        /* 状态：绿点 + mono 小字 */
+        .live { font-size: 11px; color: var(--gl); display: inline-flex; align-items: center; gap: 5px; letter-spacing: .02em; }
+        .live-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--gl); flex: none; }
+
+        /* 分区：站点色脊线 */
+        .spine-jp { border-left: 4px solid var(--jp); }
+        .spine-gl { border-left: 4px solid var(--gl); }
+
+        /* 签名元素：Webinar 序列导轨 */
+        .rail-track { position: absolute; top: 15px; left: 16%; right: 16%; height: 2px; background: var(--brass); opacity: .5; }
+        .stop-dot {
+            width: 30px; height: 30px; border-radius: 50%;
+            background: #fff; border: 2px solid var(--brass);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 13px; color: var(--brass); font-weight: 500;
+            margin: 0 auto 10px; position: relative; z-index: 1;
+        }
+        @media (max-width: 767px) { .rail-track { display: none; } }
+
+        a:focus-visible, button:focus-visible { outline: 2px solid var(--brass); outline-offset: 2px; }
+        @media (prefers-reduced-motion: reduce) {
+            .card, .btn { transition: none; }
+            .card:hover { transform: none; }
         }
     </style>
 </head>
-<body class="font-sans text-gray-800 pb-16">
+<body>
 
-    <nav class="bg-white shadow-sm mb-10">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex justify-between h-16 items-center">
-                <div class="flex items-center gap-3">
-                    <span class="text-2xl">🧪</span>
-                    <h1 class="text-xl font-bold text-gray-900">ChemLinked EDM Workspace</h1>
-                </div>
-                <div class="text-sm text-gray-500 bg-gray-100 px-3 py-1 rounded-full">
-                    内部工具 v2.0
-                </div>
+    <!-- 顶栏 -->
+    <nav class="bg-white border-b" style="border-color: var(--rule);">
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 flex justify-between items-center h-14">
+            <div class="flex items-center gap-2.5">
+                <span class="inline-block w-3 h-3 rounded-sm" style="background: var(--brass);"></span>
+                <h1 class="text-base font-bold tracking-tight">ChemLinked EDM 工作台</h1>
             </div>
+            <div class="mono text-xs text-gray-500 hidden sm:block">8 模板 · 2 站点 · 全部上线</div>
         </div>
     </nav>
 
-    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        
-        <div class="mb-12 text-center">
-            <h2 class="text-3xl font-extrabold text-gray-900 mb-4">欢迎使用邮件生成器</h2>
-            <p class="text-lg text-gray-600 max-w-2xl mx-auto">请先选择目标站点（日文/英文），然后点击对应的业务模板。在工具中填入文字后，即可一键生成适用于 Mailchimp 的代码。</p>
-        </div>
+    <main class="max-w-6xl mx-auto px-4 sm:px-6 pt-10 pb-14">
 
-        <div class="mb-16">
-            <div class="flex items-center gap-3 mb-6 border-b border-gray-300 pb-3">
-                <span class="text-3xl">🇯🇵</span>
-                <h2 class="text-2xl font-bold text-gray-800">日文站 (ChemLinked Japan)</h2>
-            </div>
-            
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                
-                <div class="bg-white rounded-xl shadow-sm overflow-hidden hover:shadow-lg transition-shadow duration-300 border border-gray-200 flex flex-col">
-                    <div class="p-6 flex-1">
-                        <div class="flex items-center justify-between mb-4">
-                            <span class="text-4xl">📰</span>
-                            <span class="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full font-semibold border border-green-200">已上线</span>
-                        </div>
-                        <h3 class="text-xl font-bold text-gray-900 mb-2">行业新闻双周报 (Newsletter)</h3>
-                        <p class="text-gray-500 text-sm mb-4">
-                            亚太区新闻资讯汇总，包含头条研讨会模块、动态新闻列表及 JCDB 联系方式。
-                        </p>
-                    </div>
-                    <div class="bg-gray-50 px-6 py-4 border-t border-gray-100">
-                        <a href="./templates/jp/newsletter/index.html" class="block w-full text-center bg-blue-600 text-white font-semibold py-2 px-4 rounded-md hover:bg-blue-700 transition-colors">
-                            使用此模板 →
-                        </a>
-                    </div>
-                </div>
-
-                <div class="bg-white rounded-xl shadow-sm overflow-hidden hover:shadow-lg transition-shadow duration-300 border border-gray-200 flex flex-col">
-                    <div class="p-6 flex-1">
-                        <div class="flex items-center justify-between mb-4">
-                            <span class="text-4xl">🎟️</span>
-                            <span class="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full font-semibold border border-green-200">已上线</span>
-                        </div>
-                        <h3 class="text-xl font-bold text-gray-900 mb-2">研讨会邀请函 (Webinar)</h3>
-                        <p class="text-gray-500 text-sm mb-4">
-                            专为线上研讨会设计，包含讲师介绍、日程表以及明显的“立即报名”按钮。
-                        </p>
-                    </div>
-                    <div class="bg-gray-50 px-6 py-4 border-t border-gray-100">
-                        <a href="./templates/jp/webinar/index.html" class="block w-full text-center bg-blue-600 text-white font-semibold py-2 px-4 rounded-md hover:bg-blue-700 transition-colors">
-                            使用此模板 →
-                        </a>
-                    </div>
-                </div>
-
-                <div class="bg-white rounded-xl shadow-sm overflow-hidden hover:shadow-lg transition-shadow duration-300 border border-gray-200 flex flex-col">
-                    <div class="p-6 flex-1">
-                        <div class="flex items-center justify-between mb-4">
-                            <span class="text-4xl">📚</span>
-                            <span class="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full font-semibold border border-green-200">已上线</span>
-                        </div>
-                        <h3 class="text-xl font-bold text-gray-900 mb-2">Ebook 速递</h3>
-                        <p class="text-gray-500 text-sm mb-4">
-                            不定期新刊 Ebook 推送：介绍新发布的日语翻译 Ebook，每本配封面图卡片与详情按钮。
-                        </p>
-                    </div>
-                    <div class="bg-gray-50 px-6 py-4 border-t border-gray-100">
-                        <a href="./templates/jp/ebook/index.html" class="block w-full text-center bg-blue-600 text-white font-semibold py-2 px-4 rounded-md hover:bg-blue-700 transition-colors">
-                            使用此模板 →
-                        </a>
-                    </div>
-                </div>
+        <!-- 工作单式 Hero：真实三步流程 -->
+        <div class="mb-12">
+            <h2 class="text-2xl sm:text-3xl font-bold tracking-tight mb-3">选模板，填内容，贴进 Mailchimp。</h2>
+            <div class="flex flex-wrap items-center gap-x-2 gap-y-2 text-sm">
+                <span class="mono px-2.5 py-1 bg-white border rounded-md" style="border-color: var(--rule);"><span style="color: var(--brass);">01</span> 挑选模板</span>
+                <span class="text-gray-400">→</span>
+                <span class="mono px-2.5 py-1 bg-white border rounded-md" style="border-color: var(--rule);"><span style="color: var(--brass);">02</span> 填写内容</span>
+                <span class="text-gray-400">→</span>
+                <span class="mono px-2.5 py-1 bg-white border rounded-md" style="border-color: var(--rule);"><span style="color: var(--brass);">03</span> 粘贴到 Code 模式 &lt;&gt;</span>
             </div>
         </div>
 
-        <div>
-            <div class="flex items-center gap-3 mb-6 border-b border-gray-300 pb-3">
-                <span class="text-3xl">🌐</span>
-                <h2 class="text-2xl font-bold text-gray-800">英文站 (ChemLinked Global)</h2>
+        <!-- 日文站 -->
+        <section class="mb-12">
+            <div class="spine-jp pl-4 mb-5 flex items-center justify-between">
+                <div class="flex items-center gap-2.5">
+                    <span class="text-xl leading-none">🇯🇵</span>
+                    <h3 class="text-lg font-bold tracking-tight">日文站 <span class="text-gray-400 font-normal">ChemLinked Japan</span></h3>
+                </div>
+                <span class="mono text-xs text-gray-500">3 个模板</span>
             </div>
-            
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                
-                <div class="bg-white rounded-xl shadow-sm overflow-hidden hover:shadow-lg transition-shadow duration-300 border border-gray-200 flex flex-col">
-                    <div class="p-6 flex-1">
-                        <div class="flex items-center justify-between mb-4">
-                            <span class="text-4xl">📰</span>
-                            <span class="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full font-semibold border border-green-200">已上线</span>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+
+                <div class="card jp">
+                    <div class="p-5 flex-1">
+                        <div class="flex items-start justify-between mb-3">
+                            <div class="iconbox jp">📰</div>
+                            <span class="live mono"><span class="live-dot"></span>已上线</span>
                         </div>
-                        <h3 class="text-xl font-bold text-gray-900 mb-2">Global Newsletter</h3>
-                        <p class="text-gray-500 text-sm mb-4">
-                            双周合规资讯汇编：FOCUS 头条 + 按地区分组的 MORE NEWS + 月度回顾/译文/活动等可选板块。
-                        </p>
+                        <h4 class="font-bold mb-1.5">行业新闻双周报</h4>
+                        <p class="text-sm text-gray-500 leading-relaxed min-h-[40px]">亚太区新闻资讯汇总，含头条研讨会与动态新闻列表。</p>
                     </div>
-                    <div class="bg-gray-50 px-6 py-4 border-t border-gray-100">
-                        <a href="./templates/en/newsletter/index.html" class="block w-full text-center bg-blue-600 text-white font-semibold py-2 px-4 rounded-md hover:bg-blue-700 transition-colors">
-                            使用此模板 →
-                        </a>
+                    <div class="px-5 pb-5">
+                        <a href="./templates/jp/newsletter/index.html" class="btn btn-jp">使用此模板 →</a>
                     </div>
                 </div>
 
-                <div class="bg-white rounded-xl shadow-sm overflow-hidden hover:shadow-lg transition-shadow duration-300 border border-gray-200 flex flex-col">
-                    <div class="p-6 flex-1">
-                        <div class="flex items-center justify-between mb-4">
-                            <span class="text-4xl">🎙️</span>
-                            <span class="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full font-semibold border border-green-200">已上线</span>
+                <div class="card jp">
+                    <div class="p-5 flex-1">
+                        <div class="flex items-start justify-between mb-3">
+                            <div class="iconbox jp">🎟️</div>
+                            <span class="live mono"><span class="live-dot"></span>已上线</span>
                         </div>
-                        <h3 class="text-xl font-bold text-gray-900 mb-2">Webinar Invitation</h3>
-                        <p class="text-gray-500 text-sm mb-4">
-                            Webinar 首次邀请（系列第一封）：完整版邀请函，含讲师介绍、日程表与报名按钮。
-                        </p>
+                        <h4 class="font-bold mb-1.5">研讨会邀请函</h4>
+                        <p class="text-sm text-gray-500 leading-relaxed min-h-[40px]">日文站完整版邀请函：讲师介绍、講演日程与报名入口。</p>
                     </div>
-                    <div class="bg-gray-50 px-6 py-4 border-t border-gray-100">
-                        <a href="./templates/en/webinar/index.html" class="block w-full text-center bg-blue-600 text-white font-semibold py-2 px-4 rounded-md hover:bg-blue-700 transition-colors">
-                            使用此模板 →
-                        </a>
+                    <div class="px-5 pb-5">
+                        <a href="./templates/jp/webinar/index.html" class="btn btn-jp">使用此模板 →</a>
                     </div>
                 </div>
 
-                <div class="bg-white rounded-xl shadow-sm overflow-hidden hover:shadow-lg transition-shadow duration-300 border border-gray-200 flex flex-col">
-                    <div class="p-6 flex-1">
-                        <div class="flex items-center justify-between mb-4">
-                            <span class="text-4xl">📣</span>
-                            <span class="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full font-semibold border border-green-200">已上线</span>
+                <div class="card jp">
+                    <div class="p-5 flex-1">
+                        <div class="flex items-start justify-between mb-3">
+                            <div class="iconbox jp">📚</div>
+                            <span class="live mono"><span class="live-dot"></span>已上线</span>
                         </div>
-                        <h3 class="text-xl font-bold text-gray-900 mb-2">专题速递</h3>
-                        <p class="text-gray-500 text-sm mb-4">
-                            不定期单话题邮件：一封邮件聚焦一个监管热点，含导语、要点卡片与相关资源列表。
-                        </p>
+                        <h4 class="font-bold mb-1.5">Ebook 速递</h4>
+                        <p class="text-sm text-gray-500 leading-relaxed min-h-[40px]">新刊日语翻译 Ebook 推送，封面卡片与详情按钮。</p>
                     </div>
-                    <div class="bg-gray-50 px-6 py-4 border-t border-gray-100">
-                        <a href="./templates/en/topic-alert/index.html" class="block w-full text-center bg-blue-600 text-white font-semibold py-2 px-4 rounded-md hover:bg-blue-700 transition-colors">
-                            使用此模板 →
-                        </a>
+                    <div class="px-5 pb-5">
+                        <a href="./templates/jp/ebook/index.html" class="btn btn-jp">使用此模板 →</a>
                     </div>
                 </div>
 
-                <div class="bg-white rounded-xl shadow-sm overflow-hidden hover:shadow-lg transition-shadow duration-300 border border-gray-200 flex flex-col">
-                    <div class="p-6 flex-1">
-                        <div class="flex items-center justify-between mb-4">
-                            <span class="text-4xl">⏰</span>
-                            <span class="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full font-semibold border border-green-200">已上线</span>
+            </div>
+        </section>
+
+        <!-- 英文站 -->
+        <section>
+            <div class="spine-gl pl-4 mb-5 flex items-center justify-between">
+                <div class="flex items-center gap-2.5">
+                    <span class="text-xl leading-none">🌐</span>
+                    <h3 class="text-lg font-bold tracking-tight">英文站 <span class="text-gray-400 font-normal">ChemLinked Global</span></h3>
+                </div>
+                <span class="mono text-xs text-gray-500">5 个模板</span>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-5 mb-5">
+
+                <div class="card gl">
+                    <div class="p-5 flex-1">
+                        <div class="flex items-start justify-between mb-3">
+                            <div class="iconbox gl">📰</div>
+                            <span class="live mono"><span class="live-dot"></span>已上线</span>
                         </div>
-                        <h3 class="text-xl font-bold text-gray-900 mb-2">研讨会提醒</h3>
-                        <p class="text-gray-500 text-sm mb-4">
-                            Webinar 二次推送（倒计时提醒）：紧凑版邀请，金黄时间盒与胶囊按钮，含背景、议程与讲师。
-                        </p>
+                        <h4 class="font-bold mb-1.5">Global Newsletter</h4>
+                        <p class="text-sm text-gray-500 leading-relaxed min-h-[40px]">双周合规资讯汇编：FOCUS 头条、分区 MORE NEWS 与可选板块。</p>
                     </div>
-                    <div class="bg-gray-50 px-6 py-4 border-t border-gray-100">
-                        <a href="./templates/en/webinar-reminder/index.html" class="block w-full text-center bg-blue-600 text-white font-semibold py-2 px-4 rounded-md hover:bg-blue-700 transition-colors">
-                            使用此模板 →
-                        </a>
+                    <div class="px-5 pb-5">
+                        <a href="./templates/en/newsletter/index.html" class="btn btn-gl">使用此模板 →</a>
                     </div>
                 </div>
 
-                <div class="bg-white rounded-xl shadow-sm overflow-hidden hover:shadow-lg transition-shadow duration-300 border border-gray-200 flex flex-col">
-                    <div class="p-6 flex-1">
-                        <div class="flex items-center justify-between mb-4">
-                            <span class="text-4xl">📩</span>
-                            <span class="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full font-semibold border border-green-200">已上线</span>
+                <div class="card gl">
+                    <div class="p-5 flex-1">
+                        <div class="flex items-start justify-between mb-3">
+                            <div class="iconbox gl">📣</div>
+                            <span class="live mono"><span class="live-dot"></span>已上线</span>
                         </div>
-                        <h3 class="text-xl font-bold text-gray-900 mb-2">会后跟进</h3>
-                        <p class="text-gray-500 text-sm mb-4">
-                            Webinar 会后推送：感谢参与 + 幻灯片/录像下载按钮 + 注册提示。
-                        </p>
+                        <h4 class="font-bold mb-1.5">专题速递</h4>
+                        <p class="text-sm text-gray-500 leading-relaxed min-h-[40px]">不定期单话题邮件：一封聚焦一个监管热点，含要点卡片。</p>
                     </div>
-                    <div class="bg-gray-50 px-6 py-4 border-t border-gray-100">
-                        <a href="./templates/en/webinar-followup/index.html" class="block w-full text-center bg-blue-600 text-white font-semibold py-2 px-4 rounded-md hover:bg-blue-700 transition-colors">
-                            使用此模板 →
-                        </a>
+                    <div class="px-5 pb-5">
+                        <a href="./templates/en/topic-alert/index.html" class="btn btn-gl">使用此模板 →</a>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- 签名元素：Webinar 序列导轨（真实发送时序 ①→②→③） -->
+            <div class="bg-white border rounded-lg p-5 sm:p-6" style="border-color: var(--rule);">
+                <div class="flex items-center justify-between mb-5">
+                    <div class="flex items-center gap-2.5">
+                        <span class="mono text-xs tracking-widest" style="color: var(--brass);">WEBINAR 全流程</span>
+                        <span class="text-xs text-gray-400">按发送顺序使用</span>
+                    </div>
+                    <span class="mono text-xs text-gray-500">3 封 · 系列模板</span>
+                </div>
+                <div class="relative">
+                    <div class="rail-track"></div>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-5 relative">
+
+                        <div>
+                            <div class="stop-dot mono">1</div>
+                            <div class="card gl">
+                                <div class="p-4">
+                                    <div class="flex items-center justify-between mb-2">
+                                        <span class="text-lg">🎙️</span>
+                                        <span class="live mono"><span class="live-dot"></span>已上线</span>
+                                    </div>
+                                    <h4 class="font-bold text-sm mb-1">首次邀请</h4>
+                                    <p class="text-xs text-gray-500 leading-relaxed mb-3">完整版邀请函：讲师、日程表与报名按钮。</p>
+                                    <a href="./templates/en/webinar/index.html" class="btn btn-gl !py-2 !text-xs">使用此模板 →</a>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div>
+                            <div class="stop-dot mono">2</div>
+                            <div class="card gl">
+                                <div class="p-4">
+                                    <div class="flex items-center justify-between mb-2">
+                                        <span class="text-lg">⏰</span>
+                                        <span class="live mono"><span class="live-dot"></span>已上线</span>
+                                    </div>
+                                    <h4 class="font-bold text-sm mb-1">会前提醒</h4>
+                                    <p class="text-xs text-gray-500 leading-relaxed mb-3">倒计时紧凑版：时间盒、议程与讲师速览。</p>
+                                    <a href="./templates/en/webinar-reminder/index.html" class="btn btn-gl !py-2 !text-xs">使用此模板 →</a>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div>
+                            <div class="stop-dot mono">3</div>
+                            <div class="card gl">
+                                <div class="p-4">
+                                    <div class="flex items-center justify-between mb-2">
+                                        <span class="text-lg">📩</span>
+                                        <span class="live mono"><span class="live-dot"></span>已上线</span>
+                                    </div>
+                                    <h4 class="font-bold text-sm mb-1">会后跟进</h4>
+                                    <p class="text-xs text-gray-500 leading-relaxed mb-3">感谢参与，附幻灯片与录像下载入口。</p>
+                                    <a href="./templates/en/webinar-followup/index.html" class="btn btn-gl !py-2 !text-xs">使用此模板 →</a>
+                                </div>
+                            </div>
+                        </div>
+
                     </div>
                 </div>
             </div>
-        </div>
-        
+        </section>
+
     </main>
+
+    <!-- 页脚 -->
+    <footer class="border-t" style="border-color: var(--rule);">
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 py-5 flex flex-col sm:flex-row justify-between gap-2">
+            <p class="mono text-xs text-gray-400">提示：粘贴到 Mailchimp 时，编辑器请切换到 Code 模式 &lt;&gt;</p>
+            <p class="mono text-xs text-gray-400">ChemLinked EDM Workspace · v3.0</p>
+        </div>
+    </footer>
 
 </body>
 </html>
