@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Global Newsletter 生成器 - ChemLinked Global</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+</head>
+<body class="bg-gray-100 p-8">
+    <div class="max-w-7xl mx-auto mb-4">
+        <a href="../../../index.html" class="inline-flex items-center gap-1 text-sm text-gray-600 hover:text-blue-600 bg-white px-3 py-1.5 rounded-md shadow-sm">← 返回工作台</a>
+    </div>
+    <div id="app" class="max-w-7xl mx-auto flex gap-8">
+        
+        <!-- 左侧：编辑表单 -->
+        <div class="w-[45%] bg-white p-6 rounded-lg shadow-md h-[85vh] overflow-y-auto">
+            <div class="flex items-center gap-2 mb-6 border-b pb-4">
+                <span class="text-3xl">📰</span>
+                <h2 class="text-2xl font-bold text-gray-800">英文站 Global Newsletter 编辑</h2>
+            </div>
+
+            <div class="mb-5 bg-gray-50 p-4 rounded-md border border-gray-200">
+                <label class="block text-sm font-bold text-gray-700 mb-2">1. 期号与日期</label>
+                <div class="flex gap-2 mb-2">
+                    <input v-model="mailData.vol" type="text" placeholder="期号，如 320" class="w-1/3 border border-gray-300 rounded-md p-1.5 text-sm">
+                    <input v-model="mailData.date" type="text" placeholder="发布日期，如 12th November, 2026" class="flex-1 border border-gray-300 rounded-md p-1.5 text-sm">
+                </div>
+                <div>
+                    <label class="block text-xs text-gray-600">Logo 图片 URL</label>
+                    <input v-model="mailData.logoUrl" type="text" class="block w-full border border-gray-300 rounded-md p-1.5 text-sm">
+                </div>
+            </div>
+
+            <div class="mb-5 bg-gray-50 p-4 rounded-md border border-gray-200">
+                <label class="block text-sm font-bold text-gray-700 mb-2">2. FOCUS 头条</label>
+                <div class="mb-2">
+                    <label class="block text-xs text-gray-600">配图 URL</label>
+                    <input v-model="mailData.focus.imgUrl" type="text" class="block w-full border border-gray-300 rounded-md p-1.5 text-sm">
+                </div>
+                <div class="mb-2">
+                    <label class="block text-xs text-gray-600">标题</label>
+                    <input v-model="mailData.focus.title" type="text" class="block w-full border border-gray-300 rounded-md p-1.5 text-sm">
+                </div>
+                <div class="mb-2">
+                    <label class="block text-xs text-gray-600">摘要 (支持 HTML，换行转 &lt;br&gt;)</label>
+                    <textarea v-model="mailData.focus.summary" rows="3" class="block w-full border border-gray-300 rounded-md p-1.5 text-sm"></textarea>
+                </div>
+                <div class="flex gap-2">
+                    <input v-model="mailData.focus.btnText" type="text" placeholder="按钮文字" class="w-1/3 border border-gray-300 rounded-md p-1.5 text-sm">
+                    <input v-model="mailData.focus.btnLink" type="text" placeholder="按钮链接" class="flex-1 border border-gray-300 rounded-md p-1.5 text-sm">
+                </div>
+            </div>
+
+            <div class="mb-5 bg-gray-50 p-4 rounded-md border border-gray-200">
+                <div class="flex justify-between items-center mb-3">
+                    <label class="block text-sm font-bold text-gray-700">3. MORE NEWS (按地区分组)</label>
+                    <button @click="addGroup" class="bg-blue-500 text-white px-2 py-1 rounded text-xs hover:bg-blue-600">+ 添加地区</button>
+                </div>
+                <div v-for="(group, gi) in mailData.regionGroups" :key="'g-'+gi" class="bg-white p-3 rounded-md mb-3 border border-gray-200">
+                    <div class="flex gap-2 mb-2 items-center">
+                        <span class="text-base">🔷</span>
+                        <input v-model="group.name" type="text" placeholder="地区名，如 Chinese Mainland" class="flex-1 border border-gray-300 rounded-md p-1.5 text-sm">
+                        <button @click="removeGroup(gi)" class="text-red-500 text-xs font-bold hover:underline whitespace-nowrap">删组</button>
+                    </div>
+                    <div v-for="(item, ii) in group.items" :key="'i-'+gi+'-'+ii" class="bg-gray-50 p-2 rounded-md mb-2 border border-gray-100">
+                        <div class="flex gap-2 mb-1.5 items-center">
+                            <input v-model="item.date" type="text" placeholder="Nov 06, 2026" class="w-28 border border-gray-300 rounded-md p-1.5 text-xs">
+                            <input v-model="item.title" type="text" placeholder="新闻标题" class="flex-1 border border-gray-300 rounded-md p-1.5 text-sm">
+                            <button @click="removeItem(gi, ii)" class="text-red-500 text-xs font-bold hover:underline">删</button>
+                        </div>
+                        <input v-model="item.link" type="text" placeholder="https://..." class="block w-full border border-gray-300 rounded-md p-1.5 text-xs">
+                    </div>
+                    <button @click="addItem(gi)" class="text-blue-600 text-xs font-semibold hover:underline">+ 添加新闻</button>
+                </div>
+            </div>
+
+            <div class="mb-5 bg-gray-50 p-4 rounded-md border border-gray-200">
+                <label class="flex items-center gap-2 text-sm font-bold text-gray-700 mb-2">
+                    <input v-model="mailData.recap.enabled" type="checkbox" class="rounded">
+                    4. MONTHLY RECAP (上月要闻回顾)
+                </label>
+                <div v-show="mailData.recap.enabled">
+                    <div class="mb-2">
+                        <label class="block text-xs text-gray-600">标题</label>
+                        <input v-model="mailData.recap.title" type="text" class="block w-full border border-gray-300 rounded-md p-1.5 text-sm">
+                    </div>
+                    <div class="mb-2">
+                        <label class="block text-xs text-gray-600">摘要 (支持 HTML，换行转 &lt;br&gt;)</label>
+                        <textarea v-model="mailData.recap.summary" rows="3" class="block w-full border border-gray-300 rounded-md p-1.5 text-sm"></textarea>
+                    </div>
+                    <div class="flex gap-2">
+                        <input v-model="mailData.recap.btnText" type="text" placeholder="按钮文字" class="w-1/3 border border-gray-300 rounded-md p-1.5 text-sm">
+                        <input v-model="mailData.recap.btnLink" type="text" placeholder="按钮链接" class="flex-1 border border-gray-300 rounded-md p-1.5 text-sm">
+                    </div>
+                </div>
+            </div>
+
+            <div class="mb-5 bg-gray-50 p-4 rounded-md border border-gray-200">
+                <label class="flex items-center gap-2 text-sm font-bold text-gray-700 mb-2">
+                    <input v-model="mailData.translation.enabled" type="checkbox" class="rounded">
+                    5. NEW ENGLISH TRANSLATION (新译文)
+                </label>
+                <div v-show="mailData.translation.enabled">
+                    <div class="mb-2">
+                        <label class="block text-xs text-gray-600">封面图 URL</label>
+                        <input v-model="mailData.translation.imgUrl" type="text" class="block w-full border border-gray-300 rounded-md p-1.5 text-sm">
+                    </div>
+                    <div class="mb-2">
+                        <label class="block text-xs text-gray-600">标题</label>
+                        <input v-model="mailData.translation.title" type="text" class="block w-full border border-gray-300 rounded-md p-1.5 text-sm">
+                    </div>
+                    <div class="flex gap-2">
+                        <input v-model="mailData.translation.btnText" type="text" placeholder="按钮文字" class="w-1/3 border border-gray-300 rounded-md p-1.5 text-sm">
+                        <input v-model="mailData.translation.btnLink" type="text" placeholder="按钮链接" class="flex-1 border border-gray-300 rounded-md p-1.5 text-sm">
+                    </div>
+                </div>
+            </div>
+
+            <div class="mb-5 bg-gray-50 p-4 rounded-md border border-gray-200">
+                <label class="flex items-center gap-2 text-sm font-bold text-gray-700 mb-2">
+                    <input v-model="mailData.event.enabled" type="checkbox" class="rounded">
+                    6. 活动推广 (如 CHEMCON 会议)
+                </label>
+                <div v-show="mailData.event.enabled">
+                    <div class="mb-2">
+                        <label class="block text-xs text-gray-600">标题</label>
+                        <input v-model="mailData.event.title" type="text" class="block w-full border border-gray-300 rounded-md p-1.5 text-sm">
+                    </div>
+                    <div class="mb-2">
+                        <label class="block text-xs text-gray-600">配图 URL</label>
+                        <input v-model="mailData.event.imgUrl" type="text" class="block w-full border border-gray-300 rounded-md p-1.5 text-sm">
+                    </div>
+                    <div class="mb-2">
+                        <label class="block text-xs text-gray-600">介绍文字 (支持 HTML)</label>
+                        <textarea v-model="mailData.event.desc" rows="3" class="block w-full border border-gray-300 rounded-md p-1.5 text-sm"></textarea>
+                    </div>
+                    <div class="flex gap-2">
+                        <input v-model="mailData.event.btnText" type="text" placeholder="按钮文字" class="w-1/3 border border-gray-300 rounded-md p-1.5 text-sm">
+                        <input v-model="mailData.event.btnLink" type="text" placeholder="按钮链接" class="flex-1 border border-gray-300 rounded-md p-1.5 text-sm">
+                    </div>
+                </div>
+            </div>
+
+            <div class="mb-5 bg-gray-50 p-4 rounded-md border border-gray-200">
+                <label class="block text-sm font-bold text-gray-700 mb-2">7. CONTACT US</label>
+                <div class="flex gap-2">
+                    <input v-model="mailData.contact.email" type="text" placeholder="邮箱" class="flex-1 border border-gray-300 rounded-md p-1.5 text-sm">
+                    <input v-model="mailData.contact.phone" type="text" placeholder="电话" class="flex-1 border border-gray-300 rounded-md p-1.5 text-sm">
+                </div>
+            </div>
+
+            <div class="mb-5 bg-gray-50 p-4 rounded-md border border-gray-200">
+                <label class="block text-sm font-bold text-gray-700 mb-2">8. UTM 追踪参数</label>
+                <label class="flex items-center gap-2 text-xs text-gray-600 mb-2">
+                    <input v-model="mailData.utmEnabled" type="checkbox" class="rounded">
+                    自动为 chemlinked.com 链接追加 utm 参数
+                </label>
+                <div>
+                    <label class="block text-xs text-gray-600">utm_campaign 值 (如发送日期 2026-11-12)</label>
+                    <input v-model="mailData.utmCampaign" type="text" class="block w-full border border-gray-300 rounded-md p-1.5 text-sm">
+                </div>
+            </div>
+        </div>
+
+        <!-- 右侧：预览与源码 -->
+        <div class="w-[55%] h-[85vh] flex flex-col gap-4">
+            <div class="bg-white rounded-lg shadow-md p-4 flex items-center justify-between">
+                <div class="inline-flex bg-gray-100 rounded-lg p-1">
+                    <button @click="viewMode = 'preview'"
+                            :class="viewMode === 'preview' ? 'bg-white shadow text-blue-600' : 'text-gray-500 hover:text-gray-700'"
+                            class="px-4 py-1.5 text-sm font-semibold rounded-md transition-colors">👀 实时预览</button>
+                    <button @click="viewMode = 'code'"
+                            :class="viewMode === 'code' ? 'bg-white shadow text-blue-600' : 'text-gray-500 hover:text-gray-700'"
+                            class="px-4 py-1.5 text-sm font-semibold rounded-md transition-colors">💻 HTML 源码</button>
+                </div>
+                <button @click="copyHtml" class="bg-green-600 hover:bg-green-700 text-white text-sm font-semibold px-4 py-2 rounded-md transition-colors">{{ copyBtnText }}</button>
+            </div>
+            <iframe v-if="viewMode === 'preview'"
+                    :srcdoc="generatedHtml"
+                    class="w-full flex-1 bg-white rounded-lg shadow-md border border-gray-200"></iframe>
+            <textarea v-else readonly :value="generatedHtml"
+                      class="w-full flex-1 bg-gray-900 text-green-400 text-xs font-mono p-4 rounded-lg shadow-md"></textarea>
+        </div>
+    </div>
+
+    <script>
+        const { createApp, reactive, ref, computed } = Vue;
+
+        createApp({
+            setup() {
+                const viewMode = ref('preview');
+                const copyBtnText = ref('📋 复制 HTML');
+
+                const mailData = reactive({
+                    vol: '320',
+                    date: '12th November, 2026',
+                    logoUrl: 'https://mcusercontent.com/90f812c8598491dbd61143d91/images/458001ba-d045-bc3d-ad49-648b12e9d79b.png',
+                    focus: {
+                        imgUrl: 'https://mcusercontent.com/90f812c8598491dbd61143d91/images/37aeb999-5828-a6a6-9e24-a4484271cf5f.jpg',
+                        title: 'China REACH: MEE Clarifies Transition Provisions under New Measures',
+                        summary: 'On November 2, 2026, China MEE released a Q&A to clarify transitional issues concerning the Measures for the Environmental Management Registration of New Chemical Substances (MEE Order No. 40). Existing registrations and record notifications remain valid, but changes to their details require re-registration under MEE Order No. 40.',
+                        btnText: 'EXPLORE MORE',
+                        btnLink: 'https://chemical.chemlinked.com/news/chemical-news/'
+                    },
+                    regionGroups: [
+                        {
+                            name: 'Chinese Mainland',
+                            items: [
+                                { date: 'Nov 06, 2026', title: 'China Repeals Regulations on Hazardous Chemical Safety Management', link: 'https://chemical.chemlinked.com/news/chemical-news/china-passes-hazardous-chemicals-safety-law-to-strengthen-lifecycle-management' },
+                                { date: 'Nov 05, 2026', title: 'China REACH: Are R&D Activities Exempt from Registration?', link: 'https://chemical.chemlinked.com/expert-article/china-reach-are-rd-activities-exempt-from-registration' },
+                                { date: 'Oct 30, 2026', title: 'China Consults on Monitored Chemicals Export Compliance Guidelines', link: 'https://chemical.chemlinked.com/news/chemical-news/' }
+                            ]
+                        },
+                        {
+                            name: 'Malaysia',
+                            items: [
+                                { date: 'Nov 10, 2026', title: 'Malaysia Proposes Amendments to Chemical Weapons Convention Act 2005', link: 'https://chemical.chemlinked.com/news/chemical-news/' }
+                            ]
+                        },
+                        {
+                            name: 'India',
+                            items: [
+                                { date: 'Nov 09, 2026', title: 'India FSSAI to Permit Specific Recycled Plastics in Food Contact Packaging', link: 'https://chemical.chemlinked.com/news/chemical-news/' },
+                                { date: 'Nov 05, 2026', title: 'India Extends Quality Control Orders Implementation for HDPE and PP Woven Sacks', link: 'https://chemical.chemlinked.com/news/chemical-news/' }
+                            ]
+                        },
+                        {
+                            name: 'Vietnam',
+                            items: [
+                                { date: 'Nov 06, 2026', title: 'Vietnam Issues National Technical Regulation on Persistent Organic Pollutants', link: 'https://chemical.chemlinked.com/news/chemical-news/' }
+                            ]
+                        },
+                        {
+                            name: 'Hungary',
+                            items: [
+                                { date: 'Nov 09, 2026', title: 'Hungary Updates Toy Safety Regulations to Restrict Cobalt Under EU Alignment', link: 'https://chemical.chemlinked.com/news/chemical-news/' }
+                            ]
+                        },
+                        {
+                            name: 'UK',
+                            items: [
+                                { date: 'Nov 06, 2026', title: 'Northern Ireland Consults on Consolidated FCM Legislative Framework', link: 'https://chemical.chemlinked.com/news/chemical-news/' },
+                                { date: 'Oct 30, 2026', title: 'UK Defra Calls for Information on 3 Proposed POPs', link: 'https://chemical.chemlinked.com/news/chemical-news/' }
+                            ]
+                        },
+                        {
+                            name: 'EU',
+                            items: [
+                                { date: 'Nov 06, 2026', title: 'European Commission Proposes Harmonised CLP Classifications for Endocrine Disruptors', link: 'https://chemical.chemlinked.com/news/chemical-news/' }
+                            ]
+                        },
+                        {
+                            name: 'USA',
+                            items: [
+                                { date: 'Nov 02, 2026', title: 'California Proposes Proposition 65 Listings for PFBA, PFHxA and PFDA', link: 'https://chemical.chemlinked.com/news/chemical-news/' }
+                            ]
+                        }
+                    ],
+                    recap: {
+                        enabled: true,
+                        title: 'MONTHLY RECAP (OCT 2026)',
+                        summary: 'China promulgated MEE Order No. 40, revising the registration rules for new chemical substances and repealing MEE Order No. 12. Japan issued a notice on CSCL violation cases and measures to prevent violations. The Philippines issued Chemical Control Orders for vinyl chloride and benzene.',
+                        btnText: 'Explore More',
+                        btnLink: 'https://chemical.chemlinked.com/news/chemical-news/'
+                    },
+                    translation: {
+                        enabled: true,
+                        imgUrl: 'https://mcusercontent.com/90f812c8598491dbd61143d91/images/bb4b0c65-aa2d-73fe-149e-a9312e3ee054.png',
+                        title: 'Measures for Environmental Management Registration of New Chemical Substances (MEE Order No. 40) Implementation Date',
+                        btnText: 'Download/Buy Now',
+                        btnLink: 'https://chemical.chemlinked.com/database/'
+                    },
+                    event: {
+                        enabled: true,
+                        title: 'CHEMCON THE AMERICAS 2027',
+                        imgUrl: 'https://mcusercontent.com/90f812c8598491dbd61143d91/images/1410a188-2b36-21d1-90d1-fbc9df22e487.png',
+                        desc: 'The #1 global conference on international chemical regulations and sustainability around the world that brings together regulators, industry leaders, and experts.',
+                        btnText: 'Register Now',
+                        btnLink: 'https://chemcon.chemlinked.com/'
+                    },
+                    contact: {
+                        email: 'chemical@chemlinked.com',
+                        phone: '+86 571 8769 9269'
+                    },
+                    utmEnabled: true,
+                    utmCampaign: '2026-11-12'
+                });
+
+                const addGroup = () => mailData.regionGroups.push({ name: '', items: [{ date: '', title: '', link: '' }] });
+                const removeGroup = (gi) => mailData.regionGroups.splice(gi, 1);
+                const addItem = (gi) => mailData.regionGroups[gi].items.push({ date: '', title: '', link: '' });
+                const removeItem = (gi, ii) => mailData.regionGroups[gi].items.splice(ii, 1);
+
+                // 换行转 <br>
+                const nl2br = (text) => {
+                    if (!text) return '';
+                    return text.replace(/\n/g, '<br>');
+                };
+
+                // 为 chemlinked.com 链接自动追加 UTM 参数
+                const withUtm = (link) => {
+                    if (!link) return '';
+                    if (!mailData.utmEnabled) return link;
+                    if (link.indexOf('chemlinked.com') === -1) return link;
+                    if (link.indexOf('utm_source=') !== -1) return link;
+                    const sep = link.indexOf('?') !== -1 ? '&' : '?';
+                    return link + sep + 'utm_source=edm&utm_medium=email&utm_campaign=' + encodeURIComponent(mailData.utmCampaign || '');
+                };
+
+                // 生成核心 HTML
+                const generatedHtml = computed(() => {
+
+                    const sectionTitle = (text, size) => `
+                    <div style="text-align: center; padding: 9px 0;">
+                        <u><strong style="color: #336699; font-family: Arial, Helvetica, sans-serif; font-size: ${size || 18}px;">&nbsp;${text}&nbsp;</strong></u>
+                    </div>`;
+
+                    const dividerHtml = `
+                    <div style="border-top: 1px solid #eaeaea; margin: 9px 18px; font-size: 1px; line-height: 1px;">&nbsp;</div>`;
+
+                    const btnHtml = (text, link) => `
+                    <table border="0" cellpadding="0" cellspacing="0" align="center" style="border-collapse: separate !important; border-radius: 4px; background-color: #248521; margin: 12px auto 0;">
+                        <tr>
+                            <td align="center" valign="middle" style="font-family: Arial, Helvetica, sans-serif; font-size: 16px; padding: 14px 28px;">
+                                <a href="${withUtm(link)}" target="_blank" style="font-weight: bold; line-height: 100%; text-align: center; text-decoration: none; color: #ffffff; display: block; mso-line-height-rule: exactly;">${text}</a>
+                            </td>
+                        </tr>
+                    </table>`;
+
+                    return `<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Chemical Newsletter Vol. ${mailData.vol}</title>
+</head>
+<body style="background-color: #f5f5f5; margin: 0; padding: 0;">
+    <center>
+        <table align="center" border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color: #f5f5f5; width: 100%;">
+            <tr>
+                <td align="center" valign="top" style="padding: 20px 10px;">
+
+                    <table border="0" cellpadding="0" cellspacing="0" width="600" style="width: 600px; max-width: 600px; border-collapse: collapse;">
+
+                        <!-- 页头 -->
+                        <tr>
+                            <td align="center" valign="top" style="background-color: #ffffff; padding: 18px;">
+                                <img src="${mailData.logoUrl}" width="163" alt="ChemLinked" style="border: 0; height: auto; display: inline-block;"><br>
+                                <a href="*|ARCHIVE|*" target="_blank" style="color: #222222; font-family: Arial, Helvetica, sans-serif; font-size: 12px; text-decoration: underline;">View in your browser</a>
+                            </td>
+                        </tr>
+
+                        <!-- 期号 -->
+                        <tr>
+                            <td align="center" valign="top" style="background-color: #ffffff; padding: 9px 18px;">
+                                <div style="font-family: Arial, Helvetica, sans-serif; font-size: 20px; font-weight: bold; color: #222222;">Chemical Newsletter Vol. ${mailData.vol}</div>
+                                <div style="font-family: Arial, Helvetica, sans-serif; font-size: 14px; color: #404040;">${mailData.date}</div>
+                            </td>
+                        </tr>
+
+                        <tr><td style="background-color: #ffffff;">${dividerHtml}</td></tr>
+
+                        <!-- FOCUS -->
+                        <tr>
+                            <td align="left" valign="top" style="background-color: #ffffff; padding: 0 18px 9px;">
+                                ${sectionTitle('FOCUS', 36)}
+                                <table border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color: #f2f2f2; border-collapse: collapse;">
+                                    <tr>
+                                        <td style="padding: 0;">
+                                            <img src="${mailData.focus.imgUrl}" width="564" alt="" style="max-width: 100%; width: 100%; border: 0; height: auto; display: block;">
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td style="padding: 18px; font-family: Arial, Helvetica, sans-serif; font-size: 14px; color: #222222; line-height: 150%; text-align: justify;">
+                                            <div style="font-size: 16px; font-weight: bold; margin-bottom: 8px;">${mailData.focus.title}</div>
+                                            ${nl2br(mailData.focus.summary)}
+                                            ${btnHtml(mailData.focus.btnText, mailData.focus.btnLink)}
+                                            <div style="height: 6px;">&nbsp;</div>
+                                        </td>
+                                    </tr>
+                                </table>
+                            </td>
+                        </tr>
+
+                        <tr><td style="background-color: #ffffff;">${dividerHtml}</td></tr>
+
+                        <!-- MORE NEWS -->
+                        <tr>
+                            <td align="left" valign="top" style="background-color: #ffffff; padding: 0 18px 9px;">
+                                ${sectionTitle('MORE NEWS')}
+                                <table border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color: #f2f2f2; border-collapse: collapse;">
+                                    <tr>
+                                        <td style="padding: 18px; font-family: Arial, Helvetica, sans-serif; font-size: 14px; color: #222222; line-height: 170%; text-align: left;">
+                                            ${mailData.regionGroups.map(g => `
+                                            <strong style="font-family: Arial, Helvetica, sans-serif; font-size: 14px; color: #b22222;">🔷 ${g.name}</strong><br>
+                                            ${g.items.map(it => `<em style="color: #b22222;"><span style="font-size: 14px; font-family: Arial, Helvetica, sans-serif;">${it.date}&nbsp;</span></em><a href="${withUtm(it.link)}" target="_blank" style="color: #222222; text-decoration: underline;"><span style="font-size: 14px; font-family: Arial, Helvetica, sans-serif;"><span style="color: #0000cd;">${it.title}</span></span></a>`).join('<br>')}`).join('<br><br>')}
+                                        </td>
+                                    </tr>
+                                </table>
+                            </td>
+                        </tr>
+
+                        <tr><td style="background-color: #ffffff;">${dividerHtml}</td></tr>
+
+                        ${mailData.recap.enabled ? `
+                        <!-- MONTHLY RECAP -->
+                        <tr>
+                            <td align="left" valign="top" style="background-color: #ffffff; padding: 0 18px 9px;">
+                                ${sectionTitle(mailData.recap.title)}
+                                <table border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color: #f2f2f2; border-collapse: collapse;">
+                                    <tr>
+                                        <td style="padding: 18px; font-family: Arial, Helvetica, sans-serif; font-size: 14px; color: #222222; line-height: 150%; text-align: justify;">
+                                            ${nl2br(mailData.recap.summary)}
+                                            ${btnHtml(mailData.recap.btnText, mailData.recap.btnLink)}
+                                            <div style="height: 6px;">&nbsp;</div>
+                                        </td>
+                                    </tr>
+                                </table>
+                            </td>
+                        </tr>
+                        <tr><td style="background-color: #ffffff;">${dividerHtml}</td></tr>` : ''}
+
+                        ${mailData.translation.enabled ? `
+                        <!-- NEW ENGLISH TRANSLATION -->
+                        <tr>
+                            <td align="left" valign="top" style="background-color: #ffffff; padding: 0 18px 9px;">
+                                ${sectionTitle('NEW ENGLISH TRANSLATION')}
+                                <table border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color: #f2f2f2; border-collapse: collapse;">
+                                    <tr>
+                                        <td align="center" style="padding: 18px;">
+                                            <img src="${mailData.translation.imgUrl}" width="264" alt="" style="max-width: 264px; width: 100%; border: 0; height: auto; display: block; margin: 0 auto;">
+                                            <div style="font-family: Arial, Helvetica, sans-serif; font-size: 14px; color: #222222; font-weight: bold; line-height: 150%; padding-top: 12px; text-align: center;">${mailData.translation.title}</div>
+                                            ${btnHtml(mailData.translation.btnText, mailData.translation.btnLink)}
+                                            <div style="height: 6px;">&nbsp;</div>
+                                        </td>
+                                    </tr>
+                                </table>
+                            </td>
+                        </tr>
+                        <tr><td style="background-color: #ffffff;">${dividerHtml}</td></tr>` : ''}
+
+                        ${mailData.event.enabled ? `
+                        <!-- 活动推广 -->
+                        <tr>
+                            <td align="left" valign="top" style="background-color: #ffffff; padding: 0 18px 9px;">
+                                ${sectionTitle(mailData.event.title)}
+                                <table border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color: #f2f2f2; border-collapse: collapse;">
+                                    <tr>
+                                        <td style="padding: 0;">
+                                            <img src="${mailData.event.imgUrl}" width="564" alt="" style="max-width: 100%; width: 100%; border: 0; height: auto; display: block;">
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td style="padding: 18px; font-family: Arial, Helvetica, sans-serif; font-size: 14px; color: #222222; line-height: 150%; text-align: justify;">
+                                            ${nl2br(mailData.event.desc)}
+                                            ${btnHtml(mailData.event.btnText, mailData.event.btnLink)}
+                                            <div style="height: 6px;">&nbsp;</div>
+                                        </td>
+                                    </tr>
+                                </table>
+                            </td>
+                        </tr>
+                        <tr><td style="background-color: #ffffff;">${dividerHtml}</td></tr>` : ''}
+
+                        <!-- CONTACT US -->
+                        <tr>
+                            <td align="center" valign="top" style="background-color: #ffffff; padding: 0 18px 9px;">
+                                ${sectionTitle('CONTACT US')}
+                                <div style="font-family: Arial, Helvetica, sans-serif; font-size: 14px; color: #222222; line-height: 170%; text-align: center; padding-bottom: 9px;">
+                                    If you have any general queries, please reach out to us:<br>
+                                    <a href="mailto:${mailData.contact.email}" style="color: #0000cd; text-decoration: underline;">${mailData.contact.email}</a><br>
+                                    ${mailData.contact.phone}
+                                </div>
+                            </td>
+                        </tr>
+
+                        <!-- 页脚 -->
+                        <tr>
+                            <td align="center" valign="top" style="background-color: #ffffff; padding: 9px 18px 24px;">
+                                <table border="0" cellpadding="0" cellspacing="0" align="center" style="border-collapse: collapse;">
+                                    <tr>
+                                        <td style="padding: 0 5px;"><a href="https://www.linkedin.com/company/chemlinked" target="_blank"><img src="https://cdn-images.mailchimp.com/icons/social-block-v2/color-linkedin-48.png" width="24" height="24" alt="LinkedIn" style="display: block; border: 0;"></a></td>
+                                        <td style="padding: 0 5px;"><a href="https://twitter.com/chemlinked" target="_blank"><img src="https://cdn-images.mailchimp.com/icons/social-block-v2/color-twitter-48.png" width="24" height="24" alt="Twitter" style="display: block; border: 0;"></a></td>
+                                        <td style="padding: 0 5px;"><a href="https://chemlinked.com/" target="_blank"><img src="https://cdn-images.mailchimp.com/icons/social-block-v2/color-link-48.png" width="24" height="24" alt="Website" style="display: block; border: 0;"></a></td>
+                                    </tr>
+                                </table>
+                                <div style="font-family: Arial, Helvetica, sans-serif; font-size: 12px; color: #404040; line-height: 150%; text-align: center; padding-top: 14px;">
+                                    <em>Copyright © 2026 ChemLinked, All rights reserved.</em><br>
+                                    Want to change how you receive these emails?<br>
+                                    You can <a href="*|UPDATE_PROFILE|*" style="color: #404040; text-decoration: underline;">update your preferences</a> or <a href="*|UNSUB|*" style="color: #404040; text-decoration: underline;">unsubscribe from this list</a>.
+                                </div>
+                            </td>
+                        </tr>
+
+                    </table>
+
+                </td>
+            </tr>
+        </table>
+    </center>
+</body>
+</html>`;
+                })
+
+                // 一键复制功能
+                const copyHtml = async () => {
+                    try {
+                        await navigator.clipboard.writeText(generatedHtml.value)
+                        copyBtnText.value = '🎉 复制成功'
+                        setTimeout(() => { copyBtnText.value = '📋 复制 HTML' }, 2000)
+                    } catch (err) {
+                        alert('复制失败，请切换到源码视图全选复制')
+                    }
+                }
+
+                return {
+                    viewMode,
+                    mailData,
+                    addGroup,
+                    removeGroup,
+                    addItem,
+                    removeItem,
+                    generatedHtml,
+                    copyHtml,
+                    copyBtnText
+                }
+            }
+        }).mount('#app')
+    </script>
+</body>
+</html>
