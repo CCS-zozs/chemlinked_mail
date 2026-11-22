@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>研讨会提醒邮件生成器 - ChemLinked Global</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+</head>
+<body class="bg-gray-100 p-8">
+    <div class="max-w-7xl mx-auto mb-4">
+        <a href="../../../index.html" class="inline-flex items-center gap-1 text-sm text-gray-600 hover:text-blue-600 bg-white px-3 py-1.5 rounded-md shadow-sm">← 返回工作台</a>
+    </div>
+    <div id="app" class="max-w-7xl mx-auto flex gap-8">
+        
+        <!-- 左侧：编辑表单 -->
+        <div class="w-[45%] bg-white p-6 rounded-lg shadow-md h-[85vh] overflow-y-auto">
+            <div class="flex items-center gap-2 mb-6 border-b pb-4">
+                <span class="text-3xl">⏰</span>
+                <h2 class="text-2xl font-bold text-gray-800">英文站研讨会提醒编辑</h2>
+            </div>
+
+            <div class="mb-5">
+                <label class="block text-sm font-bold text-gray-700 mb-1">1. 邮件标题 (用于 &lt;title&gt; / 主题参考)</label>
+                <textarea v-model="mailData.title" rows="2" class="block w-full border border-gray-300 rounded-md p-2 text-sm"></textarea>
+            </div>
+
+            <div class="mb-5 bg-gray-50 p-4 rounded-md border border-gray-200">
+                <label class="block text-sm font-bold text-gray-700 mb-2">2. 页头 (Logo + 顶栏文字)</label>
+                <div class="mb-2">
+                    <label class="block text-xs text-gray-600">Logo 图片 URL (左侧约 150px)</label>
+                    <input v-model="mailData.logoUrl" type="text" class="block w-full border border-gray-300 rounded-md p-1.5 text-sm">
+                </div>
+                <div>
+                    <label class="block text-xs text-gray-600">顶栏文字 (绿色)</label>
+                    <input v-model="mailData.topLabel" type="text" class="block w-full border border-gray-300 rounded-md p-1.5 text-sm">
+                </div>
+            </div>
+
+            <div class="mb-5 bg-gray-50 p-4 rounded-md border border-gray-200">
+                <label class="block text-sm font-bold text-gray-700 mb-2">3. Banner 与时间</label>
+                <div class="mb-2">
+                    <label class="block text-xs text-gray-600">Banner 图片 URL (全宽，点击跳转报名链接)</label>
+                    <input v-model="mailData.bannerUrl" type="text" class="block w-full border border-gray-300 rounded-md p-1.5 text-sm">
+                </div>
+                <div class="mb-2">
+                    <label class="block text-xs text-gray-600">时间盒文字 (黄底一行式)</label>
+                    <input v-model="mailData.timeText" type="text" class="block w-full border border-gray-300 rounded-md p-1.5 text-sm">
+                </div>
+                <div class="flex gap-2">
+                    <input v-model="mailData.btnText" type="text" placeholder="按钮文字" class="w-1/3 border border-gray-300 rounded-md p-1.5 text-sm">
+                    <input v-model="mailData.btnLink" type="text" placeholder="报名链接" class="flex-1 border border-gray-300 rounded-md p-1.5 text-sm">
+                </div>
+            </div>
+
+            <div class="mb-5">
+                <label class="block text-sm font-bold text-gray-700 mb-1">4. BACKGROUND (背景介绍，支持 HTML)</label>
+                <textarea v-model="mailData.background" rows="4" class="block w-full border border-gray-300 rounded-md p-2 text-sm"></textarea>
+            </div>
+
+            <div class="mb-5 bg-gray-50 p-4 rounded-md border border-gray-200">
+                <div class="flex justify-between items-center mb-3">
+                    <label class="block text-sm font-bold text-gray-700">5. CONTENTS (议程列表)</label>
+                    <button @click="addContent" class="bg-blue-500 text-white px-2 py-1 rounded text-xs hover:bg-blue-600">+ 添加条目</button>
+                </div>
+                <div v-for="(item, index) in mailData.contentList" :key="'c-'+index" class="flex gap-2 mb-2 items-center">
+                    <span class="text-gray-500 text-sm w-4">{{ index + 1 }}.</span>
+                    <input v-model="mailData.contentList[index]" type="text" class="flex-1 border border-gray-300 rounded-md p-1.5 text-sm">
+                    <button @click="removeContent(index)" class="text-red-500 text-xs font-bold hover:underline">删除</button>
+                </div>
+            </div>
+
+            <div class="mb-5 bg-gray-50 p-4 rounded-md border border-gray-200">
+                <label class="block text-sm font-bold text-gray-700 mb-2">6. SPEAKER (讲师)</label>
+                <div class="flex gap-2 mb-2">
+                    <input v-model="mailData.speakerName" type="text" placeholder="姓名" class="w-1/2 border border-gray-300 rounded-md p-1.5 text-sm">
+                    <input v-model="mailData.speakerTitle" type="text" placeholder="头衔" class="w-1/2 border border-gray-300 rounded-md p-1.5 text-sm">
+                </div>
+                <div class="mb-2">
+                    <label class="block text-xs text-gray-600">头像 URL (40px)</label>
+                    <input v-model="mailData.speakerImg" type="text" class="block w-full border border-gray-300 rounded-md p-1.5 text-sm">
+                </div>
+                <div>
+                    <label class="block text-xs text-gray-600">简介 (支持 HTML)</label>
+                    <textarea v-model="mailData.speakerIntro" rows="3" class="block w-full border border-gray-300 rounded-md p-1.5 text-sm"></textarea>
+                </div>
+            </div>
+
+            <div class="mb-5 bg-gray-50 p-4 rounded-md border border-gray-200">
+                <label class="block text-sm font-bold text-gray-700 mb-2">7. CONTACT US</label>
+                <div class="flex gap-2">
+                    <input v-model="mailData.contactEmail" type="text" placeholder="邮箱" class="flex-1 border border-gray-300 rounded-md p-1.5 text-sm">
+                    <input v-model="mailData.contactPhone" type="text" placeholder="电话" class="flex-1 border border-gray-300 rounded-md p-1.5 text-sm">
+                </div>
+            </div>
+
+            <div class="mb-5 bg-gray-50 p-4 rounded-md border border-gray-200">
+                <label class="block text-sm font-bold text-gray-700 mb-2">8. UTM 追踪参数</label>
+                <label class="flex items-center gap-2 text-xs text-gray-600 mb-2">
+                    <input v-model="mailData.utmEnabled" type="checkbox" class="rounded">
+                    自动为 chemlinked.com 链接追加 utm 参数
+                </label>
+                <div>
+                    <label class="block text-xs text-gray-600">utm_campaign 值</label>
+                    <input v-model="mailData.utmCampaign" type="text" class="block w-full border border-gray-300 rounded-md p-1.5 text-sm">
+                </div>
+            </div>
+        </div>
+
+        <!-- 右侧：预览与源码 -->
+        <div class="w-[55%] h-[85vh] flex flex-col gap-4">
+            <div class="bg-white rounded-lg shadow-md p-4 flex items-center justify-between">
+                <div class="inline-flex bg-gray-100 rounded-lg p-1">
+                    <button @click="viewMode = 'preview'"
+                            :class="viewMode === 'preview' ? 'bg-white shadow text-blue-600' : 'text-gray-500 hover:text-gray-700'"
+                            class="px-4 py-1.5 text-sm font-semibold rounded-md transition-colors">👀 实时预览</button>
+                    <button @click="viewMode = 'code'"
+                            :class="viewMode === 'code' ? 'bg-white shadow text-blue-600' : 'text-gray-500 hover:text-gray-700'"
+                            class="px-4 py-1.5 text-sm font-semibold rounded-md transition-colors">💻 HTML 源码</button>
+                </div>
+                <button @click="copyHtml" class="bg-green-600 hover:bg-green-700 text-white text-sm font-semibold px-4 py-2 rounded-md transition-colors">{{ copyBtnText }}</button>
+            </div>
+            <iframe v-if="viewMode === 'preview'"
+                    :srcdoc="generatedHtml"
+                    class="w-full flex-1 bg-white rounded-lg shadow-md border border-gray-200"></iframe>
+            <textarea v-else readonly :value="generatedHtml"
+                      class="w-full flex-1 bg-gray-900 text-green-400 text-xs font-mono p-4 rounded-lg shadow-md"></textarea>
+        </div>
+    </div>
+
+    <script>
+        const { createApp, reactive, ref, computed } = Vue;
+
+        createApp({
+            setup() {
+                const viewMode = ref('preview');
+                const copyBtnText = ref('📋 复制 HTML');
+
+                const mailData = reactive({
+                    title: 'Webinar Countdown | Navigating the EU PPWR: Securing Your Packaging Compliance Strategy',
+                    logoUrl: 'https://mcusercontent.com/90f812c8598491dbd61143d91/images/a8cb5cf4-d172-9f7c-c06c-2d1f0374daf4.png',
+                    topLabel: 'Free Webinar',
+                    bannerUrl: 'https://mcusercontent.com/90f812c8598491dbd61143d91/images/99148e6f-4096-5a11-faee-377332aab3fe.png',
+                    timeText: 'THURSDAY 21:00 ~ 22:00 PM, August 06, 2026 (China Standard Time)',
+                    btnText: 'Register Now',
+                    btnLink: 'https://chemical.chemlinked.com/new-webinar/navigating-the-eu-ppwr-securing-your-packaging-compliance-strategy',
+                    background: 'The EU Packaging and Packaging Waste Regulation (PPWR) has officially entered into force, with core obligations taking effect in phases. Companies across the packaging supply chain must act now to understand their responsibilities and prepare for compliance.',
+                    contentList: [
+                        'Overview of Regulatory Background',
+                        'Interpretation of Responsible Entities',
+                        'Analysis of Compliance Requirements',
+                        'Q&A Session'
+                    ],
+                    speakerName: 'Lusy Li',
+                    speakerTitle: 'Regulatory Affairs Consultant',
+                    speakerImg: 'https://mcusercontent.com/90f812c8598491dbd61143d91/images/c1675339-0a49-dfc4-9e98-8183549b33fb.png',
+                    speakerIntro: 'Ms. Lusy Li has been dedicated to the research of global GHS regulations and chemical compliance for years, providing regulatory consultation and training for numerous enterprises.',
+                    contactEmail: 'chemical@chemlinked.com',
+                    contactPhone: '+86 571 8769 9269',
+                    utmEnabled: true,
+                    utmCampaign: ''
+                });
+
+                const addContent = () => mailData.contentList.push('');
+                const removeContent = (index) => mailData.contentList.splice(index, 1);
+
+                const nl2br = (text) => {
+                    if (!text) return '';
+                    return text.replace(/\n/g, '<br>');
+                };
+
+                const withUtm = (link) => {
+                    if (!link) return '';
+                    if (!mailData.utmEnabled) return link;
+                    if (link.indexOf('chemlinked.com') === -1) return link;
+                    if (link.indexOf('utm_source=') !== -1) return link;
+                    const sep = link.indexOf('?') !== -1 ? '&' : '?';
+                    const campaign = (mailData.utmCampaign || '').trim();
+                    return link + sep + 'utm_source=edm' + (campaign ? '&utm_medium=email&utm_campaign=' + encodeURIComponent(campaign) : '');
+                };
+
+                // 生成核心 HTML
+                const generatedHtml = computed(() => {
+
+                    const contentHtml = mailData.contentList.map(item => `<li style="margin-bottom: 5px;">${item}</li>`).join('');
+
+                    const sectionTitle = (text) => `
+                    <div style="font-family: Georgia, serif; font-size: 18px; font-weight: bold; color: #202020; padding: 9px 0;">${text}</div>`;
+
+                    const dividerHtml = `
+                    <div style="border-top: 1px solid #eaeaea; margin: 12px 18px; font-size: 1px; line-height: 1px;">&nbsp;</div>`;
+
+                    return `<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>${mailData.title}</title>
+</head>
+<body style="background-color: #ffffff; margin: 0; padding: 0;">
+    <center>
+        <table align="center" border="0" cellpadding="0" cellspacing="0" width="100%" style="width: 100%;">
+            <tr>
+                <td align="center" valign="top" style="padding: 10px;">
+
+                    <table border="0" cellpadding="0" cellspacing="0" width="600" style="width: 600px; max-width: 600px; border-collapse: collapse; font-family: Georgia, serif; color: #202020; font-size: 16px; line-height: 150%;">
+
+                        <!-- 页头：Logo + Free Webinar -->
+                        <tr>
+                            <td align="left" valign="middle" style="padding: 14px 18px;">
+                                <img src="${mailData.logoUrl}" width="150" alt="ChemLinked" style="border: 0; height: auto; display: inline-block; vertical-align: middle;">
+                                <span style="font-size: 16px; font-weight: bold; color: #12700e; vertical-align: middle; padding-left: 12px;">${mailData.topLabel}</span>
+                            </td>
+                        </tr>
+
+                        <tr><td>${dividerHtml}</td></tr>
+
+                        <!-- Banner -->
+                        <tr>
+                            <td align="center" style="padding: 0;">
+                                <a href="${withUtm(mailData.btnLink)}" target="_blank"><img src="${mailData.bannerUrl}" width="590" alt="" style="max-width: 100%; width: 100%; border: 0; height: auto; display: block;"></a>
+                            </td>
+                        </tr>
+
+                        <!-- 时间盒 -->
+                        <tr>
+                            <td align="center" style="padding: 18px 18px 0;">
+                                <div style="background-color: #F0D376; border-radius: 8px; padding: 6px;">
+                                    <div style="background-color: #FFFFFF; border-radius: 6px; padding: 12px 18px; text-align: center; font-family: Georgia, serif; font-size: 16px; font-weight: bold; color: #202020;">
+                                        ${mailData.timeText}
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+
+                        <!-- Register Now 按钮（金黄胶囊） -->
+                        <tr>
+                            <td align="center" style="padding: 18px 0;">
+                                <table border="0" cellpadding="0" cellspacing="0" align="center" style="border-collapse: separate !important; border-radius: 50px; background-color: #F0D376;">
+                                    <tr>
+                                        <td align="center" valign="middle" style="font-family: Arial, Helvetica, sans-serif; font-size: 18px; font-weight: bold; padding: 14px 40px;">
+                                            <a href="${withUtm(mailData.btnLink)}" target="_blank" style="color: #DAA520; font-weight: bold; letter-spacing: normal; line-height: 100%; text-align: center; text-decoration: none; display: block; mso-line-height-rule: exactly;">${mailData.btnText}</a>
+                                        </td>
+                                    </tr>
+                                </table>
+                            </td>
+                        </tr>
+
+                        <tr><td>${dividerHtml}</td></tr>
+
+                        <!-- BACKGROUND -->
+                        <tr>
+                            <td align="left" valign="top" style="padding: 0 18px;">
+                                ${sectionTitle('BACKGROUND')}
+                                <div style="text-align: justify;">
+                                    ${nl2br(mailData.background)}
+                                </div>
+                            </td>
+                        </tr>
+
+                        <tr><td>${dividerHtml}</td></tr>
+
+                        <!-- CONTENTS -->
+                        <tr>
+                            <td align="left" valign="top" style="padding: 0 18px;">
+                                ${sectionTitle('CONTENTS')}
+                                <ul style="margin: 0; padding: 0 0 0 22px; text-align: left;">
+                                    ${contentHtml}
+                                </ul>
+                            </td>
+                        </tr>
+
+                        <tr><td>${dividerHtml}</td></tr>
+
+                        <!-- SPEAKER -->
+                        <tr>
+                            <td align="left" valign="top" style="padding: 0 18px;">
+                                ${sectionTitle('SPEAKER')}
+                                <table border="0" cellpadding="0" cellspacing="0" style="border-collapse: collapse;">
+                                    <tr>
+                                        <td valign="top" style="padding: 6px 14px 6px 0;">
+                                            <img src="${mailData.speakerImg}" width="40" height="40" alt="${mailData.speakerName}" style="border: 0; border-radius: 50%; display: block;">
+                                        </td>
+                                        <td valign="middle">
+                                            <div style="font-weight: bold;">${mailData.speakerName}</div>
+                                            <div style="font-size: 14px; color: #404040;">${mailData.speakerTitle}</div>
+                                        </td>
+                                    </tr>
+                                </table>
+                                <div style="text-align: justify; padding-top: 6px;">
+                                    ${nl2br(mailData.speakerIntro)}
+                                </div>
+                            </td>
+                        </tr>
+
+                        <tr><td>${dividerHtml}</td></tr>
+
+                        <!-- CONTACT US -->
+                        <tr>
+                            <td align="left" valign="top" style="padding: 0 18px 9px;">
+                                ${sectionTitle('CONTACT US')}
+                                <div style="font-family: Georgia, serif; font-size: 16px; color: #202020; line-height: 170%;">
+                                    If you have any general queries, please reach out to us:<br>
+                                    <img src="https://mcusercontent.com/90f812c8598491dbd61143d91/images/cb9dd0a7-a6ac-dc54-7b2b-23c0c4b9f0a9.png" width="20" style="border: 0; vertical-align: middle;"> <a href="mailto:${mailData.contactEmail}" style="color: #202020; text-decoration: underline;">${mailData.contactEmail}</a><br>
+                                    <img src="https://mcusercontent.com/90f812c8598491dbd61143d91/images/b055bab1-9367-0faf-5732-5c9156394907.png" width="20" style="border: 0; vertical-align: middle;"> ${mailData.contactPhone}
+                                </div>
+                            </td>
+                        </tr>
+
+                        <!-- 页脚 -->
+                        <tr>
+                            <td align="center" valign="top" style="padding: 9px 18px 24px;">
+                                <table border="0" cellpadding="0" cellspacing="0" align="center" style="border-collapse: collapse;">
+                                    <tr>
+                                        <td style="padding: 0 5px;"><a href="https://www.linkedin.com/company/chemlinked" target="_blank"><img src="https://cdn-images.mailchimp.com/icons/social-block-v2/color-linkedin-48.png" width="24" height="24" alt="LinkedIn" style="display: block; border: 0;"></a></td>
+                                        <td style="padding: 0 5px;"><a href="https://twitter.com/chemlinked" target="_blank"><img src="https://cdn-images.mailchimp.com/icons/social-block-v2/color-twitter-48.png" width="24" height="24" alt="Twitter" style="display: block; border: 0;"></a></td>
+                                        <td style="padding: 0 5px;"><a href="https://chemlinked.com/" target="_blank"><img src="https://cdn-images.mailchimp.com/icons/social-block-v2/color-link-48.png" width="24" height="24" alt="Website" style="display: block; border: 0;"></a></td>
+                                    </tr>
+                                </table>
+                                <div style="font-family: Arial, Helvetica, sans-serif; font-size: 12px; color: #404040; line-height: 150%; text-align: center; padding-top: 14px;">
+                                    <em>Copyright © 2026 ChemLinked, All rights reserved.</em><br>
+                                    You can <a href="*|UPDATE_PROFILE|*" style="color: #404040; text-decoration: underline;">update your preferences</a> or <a href="*|UNSUB|*" style="color: #404040; text-decoration: underline;">unsubscribe from this list</a>.
+                                </div>
+                            </td>
+                        </tr>
+
+                    </table>
+
+                </td>
+            </tr>
+        </table>
+    </center>
+</body>
+</html>`;
+                })
+
+                // 一键复制功能
+                const copyHtml = async () => {
+                    try {
+                        await navigator.clipboard.writeText(generatedHtml.value)
+                        copyBtnText.value = '🎉 复制成功'
+                        setTimeout(() => { copyBtnText.value = '📋 复制 HTML' }, 2000)
+                    } catch (err) {
+                        alert('复制失败，请切换到源码视图全选复制')
+                    }
+                }
+
+                return {
+                    viewMode,
+                    mailData,
+                    addContent,
+                    removeContent,
+                    generatedHtml,
+                    copyHtml,
+                    copyBtnText
+                }
+            }
+        }).mount('#app')
+    </script>
+</body>
+</html>
