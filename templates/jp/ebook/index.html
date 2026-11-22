@@ -3,336 +3,1422 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ebook 速递邮件生成器 - ChemLinked Japan</title>
+    <title>日文站 Ebook 速递生成器 - ChemLinked Japan</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
 </head>
-<body class="bg-gray-100 p-8">
-    <div class="max-w-7xl mx-auto mb-4">
-        <a href="../../../index.html" class="inline-flex items-center gap-1 text-sm text-gray-600 hover:text-blue-600 bg-white px-3 py-1.5 rounded-md shadow-sm">← 返回工作台</a>
+<body class="bg-gray-100 p-6">
+    <div class="max-w-[1700px] mx-auto mb-3 flex items-center justify-between flex-wrap gap-2">
+        <a href="../../../index.html" class="inline-flex items-center gap-1 text-sm text-gray-600 hover:text-blue-600 bg-white px-3 py-1.5 rounded-md shadow-sm">&larr; 返回工作台</a>
+        <span class="text-xs text-gray-400 font-mono">复刻自真实 Mailchimp 模板 (TRIPLE LEAD) · 固定区块已锁定</span>
     </div>
-    <div id="app" class="max-w-7xl mx-auto flex gap-8">
-        
-        <!-- 左侧：编辑表单 -->
-        <div class="w-[45%] bg-white p-6 rounded-lg shadow-md h-[85vh] overflow-y-auto">
-            <div class="flex items-center gap-2 mb-6 border-b pb-4">
+    <div id="app" class="max-w-[1700px] mx-auto flex gap-5" style="height: calc(100vh - 110px);">
+        <div class="w-[42%] min-w-[480px] bg-white p-5 rounded-lg shadow-md overflow-y-auto">
+            <div class="flex items-center gap-2 mb-5 border-b pb-4">
                 <span class="text-3xl">📚</span>
-                <h2 class="text-2xl font-bold text-gray-800">日文站 Ebook 速递编辑</h2>
+                <div>
+                    <h2 class="text-xl font-bold text-gray-800">日文站 Ebook 速递</h2>
+                    <p class="text-xs text-gray-400 mt-0.5">【新着Ebook】日本語仮訳 Ebook 告知邮件</p>
+                </div>
             </div>
 
             <div class="mb-5">
-                <label class="block text-sm font-bold text-gray-700 mb-1">1. 邮件标题 (用于 &lt;title&gt; / 主题参考)</label>
+                <label class="block text-sm font-bold text-gray-700 mb-1">1. 邮件标题（&lt;title&gt; / 主题行参考）</label>
                 <textarea v-model="mailData.title" rows="2" class="block w-full border border-gray-300 rounded-md p-2 text-sm"></textarea>
             </div>
 
             <div class="mb-5">
-                <label class="block text-sm font-bold text-gray-700 mb-1">2. 问候语</label>
-                <input v-model="mailData.greeting" type="text" class="block w-full border border-gray-300 rounded-md p-2 text-sm">
-            </div>
-
-            <div class="mb-5">
-                <label class="block text-sm font-bold text-gray-700 mb-1">3. 引言段落 (背景说明，支持 HTML)</label>
-                <textarea v-model="mailData.introText" rows="4" class="block w-full border border-gray-300 rounded-md p-2 text-sm"></textarea>
+                <label class="block text-sm font-bold text-gray-700 mb-1">2. 引言段（空行分段，段首全角空格请自行保留）</label>
+                <textarea v-model="mailData.intro" rows="4" class="block w-full border border-gray-300 rounded-md p-2 text-sm"></textarea>
             </div>
 
             <div class="mb-5 bg-gray-50 p-4 rounded-md border border-gray-200">
-                <div class="flex justify-between items-center mb-3">
-                    <label class="block text-sm font-bold text-gray-700">4. 名录列表 (标准/Ebook 清单)</label>
+                <div class="flex justify-between items-center mb-2">
+                    <label class="block text-sm font-bold text-gray-700">3. 名录列表（Ebook 清单）</label>
                     <button @click="addItem" class="bg-blue-500 text-white px-2 py-1 rounded text-xs hover:bg-blue-600">+ 添加条目</button>
                 </div>
-                <div v-for="(item, index) in mailData.listItems" :key="'item-'+index" class="flex gap-2 mb-2 items-center">
-                    <span class="text-gray-500 text-sm w-4">{{ index + 1 }}.</span>
-                    <input v-model="mailData.listItems[index]" type="text" class="flex-1 border border-gray-300 rounded-md p-1.5 text-sm">
-                    <button @click="removeItem(index)" class="text-red-500 text-xs font-bold hover:underline">删除</button>
+                <div v-for="(it, i) in mailData.items" :key="'it'+i" class="flex gap-2 mb-2 items-center">
+                    <input v-model="it.title" type="text" placeholder="条目文字（如 GB 30000.7-202X …）" class="flex-1 border border-gray-300 rounded-md p-1.5 text-sm">
+                    <input v-model="it.link" type="text" placeholder="链接" class="w-2/5 border border-gray-300 rounded-md p-1.5 text-sm">
+                    <button @click="removeItem(i)" class="text-red-500 text-xs font-bold hover:underline">删</button>
                 </div>
             </div>
 
             <div class="mb-5">
-                <label class="block text-sm font-bold text-gray-700 mb-1">5. 补充说明段 (可选，支持 HTML)</label>
-                <textarea v-model="mailData.noteText" rows="4" class="block w-full border border-gray-300 rounded-md p-2 text-sm"></textarea>
+                <label class="block text-sm font-bold text-gray-700 mb-1">4. 补充说明段（空行分段）</label>
+                <textarea v-model="mailData.note" rows="6" class="block w-full border border-gray-300 rounded-md p-2 text-sm"></textarea>
             </div>
 
             <div class="mb-5">
-                <label class="block text-sm font-bold text-gray-700 mb-1">6. 引导标题行</label>
+                <label class="block text-sm font-bold text-gray-700 mb-1">5. 引导标题行</label>
                 <input v-model="mailData.guideTitle" type="text" class="block w-full border border-gray-300 rounded-md p-2 text-sm">
             </div>
 
-            <div class="mb-5 bg-gray-50 p-4 rounded-md border border-gray-200">
-                <div class="flex justify-between items-center mb-3">
-                    <label class="block text-sm font-bold text-gray-700">7. Ebook 卡片 (图左文右 + 按钮)</label>
-                    <button @click="addBook" class="bg-blue-500 text-white px-2 py-1 rounded text-xs hover:bg-blue-600">+ 添加 Ebook</button>
+            <div class="mb-5">
+                <div class="flex justify-between items-center mb-2">
+                    <label class="block text-sm font-bold text-gray-700">6. Ebook 卡片（图左 258px + 文右 + 按钮）</label>
+                    <button @click="addBook" class="bg-blue-500 text-white px-2 py-1 rounded text-xs hover:bg-blue-600">+ 添加卡片</button>
                 </div>
-                <div v-for="(book, index) in mailData.bookList" :key="'book-'+index" class="bg-white p-3 rounded-md mb-3 border border-gray-200">
+                <div v-for="(b, bi) in mailData.books" :key="'b'+bi" class="bg-gray-50 p-4 rounded-md mb-3 border border-gray-200">
                     <div class="flex justify-between items-center mb-2">
-                        <span class="font-bold text-gray-600 text-sm">Ebook {{ index + 1 }}</span>
-                        <button @click="removeBook(index)" class="text-red-500 text-xs font-bold hover:underline">删除</button>
+                        <span class="text-xs font-bold text-gray-500">卡片 {{ bi + 1 }}</span>
+                        <button @click="removeBook(bi)" class="text-red-500 text-xs font-bold hover:underline">删除</button>
                     </div>
-                    <div class="mb-2">
-                        <label class="block text-xs text-gray-600">封面图 URL</label>
-                        <input v-model="book.imgUrl" type="text" class="block w-full border border-gray-300 rounded-md p-1.5 text-sm">
-                    </div>
-                    <div class="mb-2">
-                        <label class="block text-xs text-gray-600">封面图跳转链接 (与按钮一致可留空)</label>
-                        <input v-model="book.imgLink" type="text" class="block w-full border border-gray-300 rounded-md p-1.5 text-sm">
-                    </div>
-                    <div class="mb-2">
-                        <label class="block text-xs text-gray-600">标题 (酒红色)</label>
-                        <input v-model="book.title" type="text" class="block w-full border border-gray-300 rounded-md p-1.5 text-sm">
-                    </div>
-                    <div class="mb-2">
-                        <label class="block text-xs text-gray-600">说明文字 (换行自动转 &lt;br&gt;，支持 HTML)</label>
-                        <textarea v-model="book.desc" rows="4" class="block w-full border border-gray-300 rounded-md p-1.5 text-sm"></textarea>
-                    </div>
-                    <div class="flex gap-2">
-                        <input v-model="book.btnText" type="text" placeholder="按钮文字" class="w-1/3 border border-gray-300 rounded-md p-1.5 text-sm">
-                        <input v-model="book.btnLink" type="text" placeholder="https://..." class="flex-1 border border-gray-300 rounded-md p-1.5 text-sm">
-                    </div>
+                    <textarea v-model="b.title" rows="3" placeholder="标题（换行 = 标题行）" class="block w-full border border-gray-300 rounded-md p-1.5 text-sm mb-2"></textarea>
+                    <input v-model="b.link" type="text" placeholder="详情链接" class="block w-full border border-gray-300 rounded-md p-1.5 text-sm mb-2">
+                    <input v-model="b.imgUrl" type="text" placeholder="封面图 URL（mcusercontent 258px）" class="block w-full border border-gray-300 rounded-md p-1.5 text-sm mb-2">
+                    <textarea v-model="b.desc" rows="6" placeholder="说明（换行 = 换行）" class="block w-full border border-gray-300 rounded-md p-1.5 text-sm mb-2"></textarea>
+                    <input v-model="b.btnText" type="text" placeholder="按钮文字" class="block w-full border border-gray-300 rounded-md p-1.5 text-sm">
                 </div>
             </div>
 
-            <div class="mb-5 bg-gray-50 p-4 rounded-md border border-gray-200">
-                <label class="block text-sm font-bold text-gray-700 mb-2">8. UTM 追踪参数</label>
-                <label class="flex items-center gap-2 text-xs text-gray-600 mb-2">
-                    <input v-model="mailData.utmEnabled" type="checkbox" class="rounded">
-                    自动为 chemlinked.com 链接追加 utm 参数
-                </label>
-                <div>
-                    <label class="block text-xs text-gray-600">utm_campaign 值 (留空则只加 utm_source=edm)</label>
-                    <input v-model="mailData.utmCampaign" type="text" class="block w-full border border-gray-300 rounded-md p-1.5 text-sm">
-                </div>
+            <div class="text-xs text-gray-400 bg-gray-50 border border-dashed border-gray-300 rounded-md p-3 leading-relaxed">
+                固定区块（与真实邮件一致，无需编辑）：★头部、◎活用のメリット◎、页脚与退订。<br>
+                每张卡片自动附带分隔线与「詳細はこちら」按钮（#2BAADF）。
             </div>
         </div>
-
-        <!-- 右侧：预览与源码 -->
-        <div class="w-[55%] h-[85vh] flex flex-col gap-4">
-            <div class="bg-white rounded-lg shadow-md p-4 flex items-center justify-between">
-                <div class="inline-flex bg-gray-100 rounded-lg p-1">
-                    <button @click="viewMode = 'preview'"
-                            :class="viewMode === 'preview' ? 'bg-white shadow text-blue-600' : 'text-gray-500 hover:text-gray-700'"
-                            class="px-4 py-1.5 text-sm font-semibold rounded-md transition-colors">👀 实时预览</button>
-                    <button @click="viewMode = 'code'"
-                            :class="viewMode === 'code' ? 'bg-white shadow text-blue-600' : 'text-gray-500 hover:text-gray-700'"
-                            class="px-4 py-1.5 text-sm font-semibold rounded-md transition-colors">💻 HTML 源码</button>
+        <div class="flex-1 flex flex-col min-w-0">
+            <div class="flex items-center justify-between mb-3">
+                <div class="flex bg-gray-200 rounded-lg p-1 gap-1">
+                    <button @click="viewMode='preview'" :class="viewMode==='preview' ? 'bg-white shadow text-blue-600' : 'text-gray-500 hover:text-gray-700'" class="px-4 py-1.5 text-sm rounded-md font-medium">预览</button>
+                    <button @click="viewMode='code'" :class="viewMode==='code' ? 'bg-white shadow text-blue-600' : 'text-gray-500 hover:text-gray-700'" class="px-4 py-1.5 text-sm rounded-md font-medium">源码</button>
                 </div>
                 <button @click="copyHtml" class="bg-green-600 hover:bg-green-700 text-white text-sm font-semibold px-4 py-2 rounded-md transition-colors">{{ copyBtnText }}</button>
             </div>
-            <iframe v-if="viewMode === 'preview'"
-                    :srcdoc="generatedHtml"
-                    class="w-full flex-1 bg-white rounded-lg shadow-md border border-gray-200"></iframe>
-            <textarea v-else readonly :value="generatedHtml"
-                      class="w-full flex-1 bg-gray-900 text-green-400 text-xs font-mono p-4 rounded-lg shadow-md"></textarea>
+            <iframe v-if="viewMode==='preview'" :srcdoc="generatedHtml" class="w-full flex-1 bg-white rounded-lg shadow-md border border-gray-200"></iframe>
+            <textarea v-else :value="generatedHtml" readonly class="w-full flex-1 font-mono text-[11px] leading-relaxed p-3 bg-gray-800 text-green-200 rounded-lg border border-gray-700"></textarea>
         </div>
     </div>
-
     <script>
-        const { createApp, reactive, ref, computed } = Vue;
 
-        createApp({
-            setup() {
-                const viewMode = ref('preview');
-                const copyBtnText = ref('📋 复制 HTML');
+const { createApp, reactive, ref, computed } = Vue;
+const SKELETON = `<!doctype html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office">
+    <head>
+    	<!-- NAME: TRIPLE LEAD -->
+        <!--[if gte mso 15]>
+		<xml>
+			<o:OfficeDocumentSettings>
+			<o:AllowPNG/>
+			<o:PixelsPerInch>96</o:PixelsPerInch>
+			</o:OfficeDocumentSettings>
+		</xml>
+		<![endif]-->
+		<meta charset="UTF-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+		<title>__TITLE__</title>
+        
+    <style type="text/css">
+		p{
+			margin:10px 0;
+			padding:0;
+		}
+		table{
+			border-collapse:collapse;
+		}
+		h1,h2,h3,h4,h5,h6{
+			display:block;
+			margin:0;
+			padding:0;
+		}
+		img,a img{
+			border:0;
+			height:auto;
+			outline:none;
+			text-decoration:none;
+		}
+		body,#bodyTable,#bodyCell{
+			height:100%;
+			margin:0;
+			padding:0;
+			width:100%;
+		}
+		ul{
+			margin:0;
+			padding:0 0 0 15px;
+		}
+		li{
+			margin-bottom:5px;
+		}
+		.mcnPreviewText{
+			display:none !important;
+		}
+		#outlook a{
+			padding:0;
+		}
+		img{
+			-ms-interpolation-mode:bicubic;
+		}
+		table{
+			mso-table-lspace:0pt;
+			mso-table-rspace:0pt;
+		}
+		.ReadMsgBody{
+			width:100%;
+		}
+		.ExternalClass{
+			width:100%;
+		}
+		p,a,li,td,blockquote{
+			mso-line-height-rule:exactly;
+		}
+		a[href^=tel],a[href^=sms]{
+			color:inherit;
+			cursor:default;
+			text-decoration:none;
+		}
+		p,a,li,td,body,table,blockquote{
+			-ms-text-size-adjust:100%;
+			-webkit-text-size-adjust:100%;
+		}
+		.ExternalClass,.ExternalClass p,.ExternalClass td,.ExternalClass div,.ExternalClass span,.ExternalClass font{
+			line-height:100%;
+		}
+		a[x-apple-data-detectors]{
+			color:inherit !important;
+			text-decoration:none !important;
+			font-size:inherit !important;
+			font-family:inherit !important;
+			font-weight:inherit !important;
+			line-height:inherit !important;
+		}
+		table[align=left]{
+			float:left;
+		}
+		table[align=right]{
+			float:right;
+		}
+		a.mcnButton{
+			display:block;
+		}
+		.mcnImage,.mcnRetinaImage{
+			vertical-align:bottom;
+		}
+		.mcnTextContent{
+			word-break:break-word;
+		}
+		.mcnTextContent img{
+			height:auto !important;
+		}
+		.mcnDividerBlock{
+			table-layout:fixed !important;
+		}
+		body,#bodyTable,#templateFooter{
+			background-color:#DDDDDD;
+		}
+		#bodyCell{
+			border-top:0;
+		}
+		h1{
+			color:#ea5b3a !important;
+			font-family:Verdana;
+			font-size:26px;
+			font-style:normal;
+			font-weight:bold;
+			line-height:125%;
+			letter-spacing:-1px;
+			text-align:left;
+		}
+		h2{
+			color:#991B4A !important;
+			font-family:Verdana;
+			font-size:20px;
+			font-style:normal;
+			font-weight:bold;
+			line-height:125%;
+			letter-spacing:-.75px;
+			text-align:left;
+		}
+		h3{
+			color:#303030 !important;
+			font-family:Verdana;
+			font-size:16px;
+			font-style:normal;
+			font-weight:normal;
+			line-height:125%;
+			letter-spacing:-.5px;
+			text-align:left;
+		}
+		h4{
+			color:#101010 !important;
+			font-family:Verdana;
+			font-size:14px;
+			font-style:normal;
+			font-weight:bold;
+			line-height:125%;
+			letter-spacing:normal;
+			text-align:left;
+		}
+		#templatePreheader{
+			background-color:#ebaa3a;
+			border-top:0;
+			border-bottom:0;
+		}
+		.preheaderContainer .mcnTextContent,.preheaderContainer .mcnTextContent p{
+			color:#F5F5F5;
+			font-family:Verdana;
+			font-size:10px;
+			line-height:125%;
+			text-align:left;
+		}
+		.preheaderContainer .mcnTextContent a{
+			color:#F5F5F5;
+			font-weight:normal;
+			text-decoration:underline;
+		}
+		#templateHeader{
+			background-color:#F5F5F5;
+			border-top:0;
+			border-bottom:0;
+		}
+		.headerContainer .mcnTextContent,.headerContainer .mcnTextContent p{
+			color:#404040;
+			font-family:Verdana;
+			font-size:16px;
+			line-height:150%;
+			text-align:left;
+		}
+		.headerContainer .mcnTextContent a{
+			color:#991B4A;
+			font-weight:bold;
+			text-decoration:none;
+		}
+		#templateColumns{
+			background-color:#F5F5F5;
+			border-top:0;
+			border-bottom:0;
+		}
+		.leftColumnContainer .mcnTextContent,.leftColumnContainer .mcnTextContent p{
+			color:#404040;
+			font-family:Verdana;
+			font-size:12px;
+			line-height:150%;
+			text-align:left;
+		}
+		.leftColumnContainer .mcnTextContent a{
+			color:#991B4A;
+			font-weight:normal;
+			text-decoration:none;
+		}
+		.centerColumnContainer .mcnTextContent,.centerColumnContainer .mcnTextContent p{
+			color:#404040;
+			font-family:Verdana;
+			font-size:12px;
+			line-height:150%;
+			text-align:left;
+		}
+		.centerColumnContainer .mcnTextContent a{
+			color:#991B4A;
+			font-weight:normal;
+			text-decoration:none;
+		}
+		.rightColumnContainer .mcnTextContent,.rightColumnContainer .mcnTextContent p{
+			color:#404040;
+			font-family:Verdana;
+			font-size:12px;
+			line-height:150%;
+			text-align:left;
+		}
+		.rightColumnContainer .mcnTextContent a{
+			color:#991B4A;
+			font-weight:normal;
+			text-decoration:none;
+		}
+		#templateBody{
+			background-color:#F5F5F5;
+			border-top:0;
+			border-bottom:0;
+		}
+		#bodyBackground{
+			background-color:#FFFFFF;
+			border:1px solid #D5D5D5;
+		}
+		.bodyContainer .mcnTextContent,.bodyContainer .mcnTextContent p{
+			color:#202020;
+			font-family:Verdana;
+			font-size:14px;
+			line-height:150%;
+			text-align:left;
+		}
+		.bodyContainer .mcnTextContent a{
+			color:#991B4A;
+			font-weight:bold;
+			text-decoration:none;
+		}
+		#templateFooter{
+			border-top:0;
+			border-bottom:0;
+		}
+		.footerContainer .mcnTextContent,.footerContainer .mcnTextContent p{
+			color:#404040;
+			font-family:Verdana;
+			font-size:10px;
+			line-height:125%;
+			text-align:left;
+		}
+		.footerContainer .mcnTextContent a{
+			color:#404040;
+			font-weight:normal;
+			text-decoration:underline;
+		}
+	@media only screen and (max-width: 480px){
+		body,table,td,p,a,li,blockquote{
+			-webkit-text-size-adjust:none !important;
+		}
 
-                const mailData = reactive({
-                    title: 'ChemLinked Japanメールマガジン　【新着Ebook】中国GB標準案 日本語訳3件',
-                    greeting: 'いつもご利用いただきありがとうございます。',
-                    introText: '中国では現在、化学品の分類・表示や接着剤中の有害物質規制に関する国家標準（GB）の見直しが進められています。\nChemLinked Japanでは、このたび以下3件の標準案について、日本語仮訳Ebookをご用意いたします。',
-                    listItems: [
-                        'GB 30000.7-202X 化学品の分類とラベル規範 第7部分：引火性液体',
-                        'GB 30000.15-20XX 化学品の分類とラベル規範 第15部分：酸化性固体',
-                        'GB XXXXX-XXXX 接着剤中の有害物質含有限度量（意見募集稿）'
-                    ],
-                    noteText: 'GB 30000.7-202X及びGB 30000.15-20XXは、国連GHS改訂第11版との整合を図るもので、引火性液体および酸化性固体の分類、危険有害性の伝達、ならびにラベル表示に適用されます。また、「一部強制」から「全面強制」へと移行する見込みです。',
-                    guideTitle: '▼ 日本語仮訳Ebookはこちら',
-                    bookList: [
-                        {
-                            imgUrl: 'https://mcusercontent.com/90f812c8598491dbd61143d91/images/a79dfec8-edd5-b582-5c50-2b28789e2c35.png',
-                            imgLink: '',
-                            title: 'GB 30000.7-202X 化学品の分類とラベル規範 第7部分：引火性液体',
-                            desc: '　2026年8月21日、GB 30000.7-202Xに関する意見募集の公告が発表されました。意見募集期間は2026年10月19日までとなります。\n　この標準は引火点および初留点のデータに基づいて引火性液体を4つの区分に分類します。国連GHS改訂第11版に合わせた絵表示（シンボル）、製品特定名義、注意書きコードの修正などが含まれます。',
-                            btnText: 'Ebookの詳細はこちら',
-                            btnLink: 'https://jp.chemlinked.com/epublication/gb-30000-7-202x'
-                        },
-                        {
-                            imgUrl: 'https://mcusercontent.com/90f812c8598491dbd61143d91/images/bb4b0c65-aa2d-73fe-149e-a9312e3ee054.png',
-                            imgLink: '',
-                            title: 'GB 30000.15-20XX 化学品の分類とラベル規範 第15部分：酸化性固体',
-                            desc: '　2026年8月21日、GB 30000.15-20XXに関する意見募集の公告が発表されました。意見募集期間は2026年10月19日までとなります。\n　同標準はセルロースと混合した際の燃焼時間または燃焼速度に基づいて酸化性固体を区分分類します。',
-                            btnText: 'Ebookの詳細はこちら',
-                            btnLink: 'https://jp.chemlinked.com/epublication/gb-30000-15-20xx'
-                        },
-                        {
-                            imgUrl: 'https://mcusercontent.com/90f812c8598491dbd61143d91/images/1410a188-2b36-21d1-90d1-fbc9df22e487.png',
-                            imgLink: '',
-                            title: 'GB XXXXX-XXXX 接着剤中の有害物質含有限度量（意見募集稿）',
-                            desc: '　本標準は現在まだ意見公募用草案の段階であり、最終的な公布日や施行日は定まっていません。草案では、13種類の有害物質または物質群に対する限度量が設定されています。',
-                            btnText: 'Ebookの詳細はこちら',
-                            btnLink: 'https://jp.chemlinked.com/epublication/gb-xxxxx-xxxx-limit-of-harmful-substances-in-adhesives-draft-for-comments'
-                        }
-                    ],
-                    utmEnabled: true,
-                    utmCampaign: ''
-                });
+}	@media only screen and (max-width: 480px){
+		body{
+			width:100% !important;
+			min-width:100% !important;
+		}
 
-                const addItem = () => mailData.listItems.push('');
-                const removeItem = (index) => mailData.listItems.splice(index, 1);
-                const addBook = () => mailData.bookList.push({ imgUrl: '', imgLink: '', title: '', desc: '', btnText: 'Ebookの詳細はこちら', btnLink: '' });
-                const removeBook = (index) => mailData.bookList.splice(index, 1);
+}	@media only screen and (max-width: 480px){
+		#bodyCell{
+			padding-top:10px !important;
+		}
 
-                // 换行转 <br>
-                const nl2br = (text) => {
-                    if (!text) return '';
-                    return text.replace(/\n/g, '<br>');
-                };
+}	@media only screen and (max-width: 480px){
+		.templateContainer{
+			max-width:600px !important;
+			width:100% !important;
+		}
 
-                // 为 chemlinked.com 链接自动追加 UTM 参数
-                const withUtm = (link) => {
-                    if (!link) return '';
-                    if (!mailData.utmEnabled) return link;
-                    if (link.indexOf('chemlinked.com') === -1) return link;
-                    if (link.indexOf('utm_source=') !== -1) return link;
-                    const sep = link.indexOf('?') !== -1 ? '&' : '?';
-                    const campaign = (mailData.utmCampaign || '').trim();
-                    return link + sep + 'utm_source=edm' + (campaign ? '&utm_medium=email&utm_campaign=' + encodeURIComponent(campaign) : '');
-                };
+}	@media only screen and (max-width: 480px){
+		.columnsContainer{
+			display:block!important;
+			max-width:600px !important;
+			padding-bottom:18px !important;
+			padding-left:0 !important;
+			width:100%!important;
+		}
 
-                // 生成核心 HTML
-                const generatedHtml = computed(() => {
+}	@media only screen and (max-width: 480px){
+		.mcnRetinaImage{
+			max-width:100% !important;
+		}
 
-                    const listHtml = mailData.listItems.map(item => `<li style="margin-bottom: 5px;">${item}</li>`).join('');
+}	@media only screen and (max-width: 480px){
+		.mcnImage{
+			height:auto !important;
+			width:100% !important;
+		}
 
-                    const bookHtml = mailData.bookList.map(b => {
-                        const imgLink = b.imgLink || b.btnLink;
-                        return `
-                    <table border="0" cellpadding="0" cellspacing="0" width="100%" style="border-collapse: collapse;">
+}	@media only screen and (max-width: 480px){
+		.mcnCartContainer,.mcnCaptionTopContent,.mcnRecContentContainer,.mcnCaptionBottomContent,.mcnTextContentContainer,.mcnBoxedTextContentContainer,.mcnImageGroupContentContainer,.mcnCaptionLeftTextContentContainer,.mcnCaptionRightTextContentContainer,.mcnCaptionLeftImageContentContainer,.mcnCaptionRightImageContentContainer,.mcnImageCardLeftTextContentContainer,.mcnImageCardRightTextContentContainer,.mcnImageCardLeftImageContentContainer,.mcnImageCardRightImageContentContainer{
+			max-width:100% !important;
+			width:100% !important;
+		}
+
+}	@media only screen and (max-width: 480px){
+		.mcnBoxedTextContentContainer{
+			min-width:100% !important;
+		}
+
+}	@media only screen and (max-width: 480px){
+		.mcnImageGroupContent{
+			padding:9px !important;
+		}
+
+}	@media only screen and (max-width: 480px){
+		.mcnCaptionLeftContentOuter .mcnTextContent,.mcnCaptionRightContentOuter .mcnTextContent{
+			padding-top:9px !important;
+		}
+
+}	@media only screen and (max-width: 480px){
+		.mcnImageCardTopImageContent,.mcnCaptionBottomContent:last-child .mcnCaptionBottomImageContent,.mcnCaptionBlockInner .mcnCaptionTopContent:last-child .mcnTextContent{
+			padding-top:18px !important;
+		}
+
+}	@media only screen and (max-width: 480px){
+		.mcnImageCardBottomImageContent{
+			padding-bottom:9px !important;
+		}
+
+}	@media only screen and (max-width: 480px){
+		.mcnImageGroupBlockInner{
+			padding-top:0 !important;
+			padding-bottom:0 !important;
+		}
+
+}	@media only screen and (max-width: 480px){
+		.mcnImageGroupBlockOuter{
+			padding-top:9px !important;
+			padding-bottom:9px !important;
+		}
+
+}	@media only screen and (max-width: 480px){
+		.mcnTextContent,.mcnBoxedTextContentColumn{
+			padding-right:18px !important;
+			padding-left:18px !important;
+		}
+
+}	@media only screen and (max-width: 480px){
+		.mcnImageCardLeftImageContent,.mcnImageCardRightImageContent{
+			padding-right:18px !important;
+			padding-bottom:0 !important;
+			padding-left:18px !important;
+		}
+
+}	@media only screen and (max-width: 480px){
+		.mcpreview-image-uploader{
+			display:none !important;
+			width:100% !important;
+		}
+
+}	@media only screen and (max-width: 480px){
+		h1{
+			font-size:24px !important;
+			line-height:125% !important;
+		}
+
+}	@media only screen and (max-width: 480px){
+		h2{
+			font-size:20px !important;
+			line-height:125% !important;
+		}
+
+}	@media only screen and (max-width: 480px){
+		h3{
+			font-size:18px !important;
+			line-height:125% !important;
+		}
+
+}	@media only screen and (max-width: 480px){
+		h4{
+			font-size:16px !important;
+			line-height:125% !important;
+		}
+
+}	@media only screen and (max-width: 480px){
+		.mcnBoxedTextContentContainer .mcnTextContent,.mcnBoxedTextContentContainer .mcnTextContent p{
+			font-size:18px !important;
+			line-height:125% !important;
+		}
+
+}	@media only screen and (max-width: 480px){
+		#templatePreheader{
+			display:block !important;
+		}
+
+}	@media only screen and (max-width: 480px){
+		.preheaderContainer .mcnTextContent,.preheaderContainer .mcnTextContent p{
+			font-size:14px !important;
+			line-height:115% !important;
+		}
+
+}	@media only screen and (max-width: 480px){
+		.headerContainer .mcnTextContent,.headerContainer .mcnTextContent p{
+			font-size:18px !important;
+			line-height:125% !important;
+		}
+
+}	@media only screen and (max-width: 480px){
+		.leftColumnContainer .mcnTextContent,.leftColumnContainer .mcnTextContent p{
+			font-size:18px !important;
+			line-height:125% !important;
+		}
+
+}	@media only screen and (max-width: 480px){
+		.centerColumnContainer .mcnTextContent,.centerColumnContainer .mcnTextContent p{
+			font-size:18px !important;
+			line-height:125% !important;
+		}
+
+}	@media only screen and (max-width: 480px){
+		.rightColumnContainer .mcnTextContent,.rightColumnContainer .mcnTextContent p{
+			font-size:18px !important;
+			line-height:125% !important;
+		}
+
+}	@media only screen and (max-width: 480px){
+		.bodyContainer .mcnTextContent,.bodyContainer .mcnTextContent p{
+			font-size:18px !important;
+			line-height:125% !important;
+		}
+
+}	@media only screen and (max-width: 480px){
+		.footerContainer .mcnTextContent,.footerContainer .mcnTextContent p{
+			font-size:14px !important;
+			line-height:115% !important;
+		}
+
+}</style></head>
+    <body leftmargin="0" marginwidth="0" topmargin="0" marginheight="0" offset="0" style="height: 100%;margin: 0;padding: 0;width: 100%;-ms-text-size-adjust: 100%;-webkit-text-size-adjust: 100%;background-color: #DDDDDD;">
+        <!---->
+        <!--[if !gte mso 9]><!----><span class="mcnPreviewText" style="display:none; font-size:0px; line-height:0px; max-height:0px; max-width:0px; opacity:0; overflow:hidden; visibility:hidden; mso-hide:all;">いつもご利用いただきありがとうございます。</span><!--<![endif]-->
+        <!---->
+        <center>
+            <table align="center" border="0" cellpadding="0" cellspacing="0" height="100%" width="100%" id="bodyTable" style="border-collapse: collapse;mso-table-lspace: 0pt;mso-table-rspace: 0pt;-ms-text-size-adjust: 100%;-webkit-text-size-adjust: 100%;height: 100%;margin: 0;padding: 0;width: 100%;background-color: #DDDDDD;">
+                <tr>
+                    <td align="center" valign="top" id="bodyCell" style="mso-line-height-rule: exactly;-ms-text-size-adjust: 100%;-webkit-text-size-adjust: 100%;height: 100%;margin: 0;padding: 0;width: 100%;border-top: 0;">
+                        <!-- BEGIN TEMPLATE // -->
+                        <table border="0" cellpadding="0" cellspacing="0" width="100%" style="border-collapse: collapse;mso-table-lspace: 0pt;mso-table-rspace: 0pt;-ms-text-size-adjust: 100%;-webkit-text-size-adjust: 100%;">
+                            <tr>
+                                <td align="center" valign="top" style="mso-line-height-rule: exactly;-ms-text-size-adjust: 100%;-webkit-text-size-adjust: 100%;">
+                                    <!-- BEGIN PREHEADER // -->
+                                    <table border="0" cellpadding="0" cellspacing="0" width="100%" id="templatePreheader" style="border-collapse: collapse;mso-table-lspace: 0pt;mso-table-rspace: 0pt;-ms-text-size-adjust: 100%;-webkit-text-size-adjust: 100%;background-color: #ebaa3a;border-top: 0;border-bottom: 0;">
+                                        <tr>
+                                        	<td align="center" valign="top" style="mso-line-height-rule: exactly;-ms-text-size-adjust: 100%;-webkit-text-size-adjust: 100%;">
+                                                <table border="0" cellpadding="0" cellspacing="0" width="600" class="templateContainer" style="border-collapse: collapse;mso-table-lspace: 0pt;mso-table-rspace: 0pt;-ms-text-size-adjust: 100%;-webkit-text-size-adjust: 100%;">
+                                                    <tr>
+                                                        <td valign="top" class="preheaderContainer" style="padding-top: 9px;padding-bottom: 9px;mso-line-height-rule: exactly;-ms-text-size-adjust: 100%;-webkit-text-size-adjust: 100%;"><table border="0" cellpadding="0" cellspacing="0" width="100%" class="mcnTextBlock" style="min-width: 100%;border-collapse: collapse;mso-table-lspace: 0pt;mso-table-rspace: 0pt;-ms-text-size-adjust: 100%;-webkit-text-size-adjust: 100%;">
+    <tbody class="mcnTextBlockOuter">
+        <tr>
+            <td valign="top" class="mcnTextBlockInner" style="padding-top: 9px;mso-line-height-rule: exactly;-ms-text-size-adjust: 100%;-webkit-text-size-adjust: 100%;">
+              	<!--[if mso]>
+				<table align="left" border="0" cellspacing="0" cellpadding="0" width="100%" style="width:100%;">
+				<tr>
+				<![endif]-->
+			    
+				<!--[if mso]>
+				<td valign="top" width="600" style="width:600px;">
+				<![endif]-->
+                <table align="left" border="0" cellpadding="0" cellspacing="0" style="max-width: 100%;min-width: 100%;border-collapse: collapse;mso-table-lspace: 0pt;mso-table-rspace: 0pt;-ms-text-size-adjust: 100%;-webkit-text-size-adjust: 100%;float: left;" width="100%" class="mcnTextContentContainer">
+                    <tbody><tr>
+                        
+                        <td valign="top" class="mcnTextContent" style="padding-top: 0;padding-right: 18px;padding-bottom: 9px;padding-left: 18px;mso-line-height-rule: exactly;-ms-text-size-adjust: 100%;-webkit-text-size-adjust: 100%;word-break: break-word;color: #F5F5F5;font-family: Verdana;font-size: 10px;line-height: 125%;text-align: left;">
+                        
+                            
+                        </td>
+                    </tr>
+                </tbody></table>
+				<!--[if mso]>
+				</td>
+				<![endif]-->
+                
+				<!--[if mso]>
+				</tr>
+				</table>
+				<![endif]-->
+            </td>
+        </tr>
+    </tbody>
+</table></td>
+                                                    </tr>
+                                                </table>
+                                            </td>                                            
+                                        </tr>
+                                    </table>
+                                    <!-- // END PREHEADER -->
+                                </td>
+                            </tr>
+                            <tr>
+                                <td align="center" valign="top" style="mso-line-height-rule: exactly;-ms-text-size-adjust: 100%;-webkit-text-size-adjust: 100%;">
+                                    <!-- BEGIN HEADER // -->
+                                    <table border="0" cellpadding="0" cellspacing="0" width="100%" id="templateHeader" style="border-collapse: collapse;mso-table-lspace: 0pt;mso-table-rspace: 0pt;-ms-text-size-adjust: 100%;-webkit-text-size-adjust: 100%;background-color: #F5F5F5;border-top: 0;border-bottom: 0;">
+                                        <tr>
+                                            <td align="center" valign="top" style="mso-line-height-rule: exactly;-ms-text-size-adjust: 100%;-webkit-text-size-adjust: 100%;">
+                                                <table border="0" cellpadding="0" cellspacing="0" width="600" class="templateContainer" style="border-collapse: collapse;mso-table-lspace: 0pt;mso-table-rspace: 0pt;-ms-text-size-adjust: 100%;-webkit-text-size-adjust: 100%;">
+                                                    <tr>
+                                                        <td valign="top" class="headerContainer" style="padding-top: 9px;padding-bottom: 9px;mso-line-height-rule: exactly;-ms-text-size-adjust: 100%;-webkit-text-size-adjust: 100%;"></td>
+                                                    </tr>
+                                                </table>
+                                            </td>
+                                        </tr>
+                                    </table>
+                                    <!-- // END HEADER -->
+                                </td>
+                            </tr>
+                            <tr>
+                                <td align="center" valign="top" style="mso-line-height-rule: exactly;-ms-text-size-adjust: 100%;-webkit-text-size-adjust: 100%;">
+                                    <!-- BEGIN COLUMNS // -->
+                                    <table border="0" cellpadding="0" cellspacing="0" width="100%" id="templateColumns" style="border-collapse: collapse;mso-table-lspace: 0pt;mso-table-rspace: 0pt;-ms-text-size-adjust: 100%;-webkit-text-size-adjust: 100%;background-color: #F5F5F5;border-top: 0;border-bottom: 0;">
+                                        <tr>
+                                            <td align="center" valign="top" style="padding-top: 9px;padding-bottom: 9px;mso-line-height-rule: exactly;-ms-text-size-adjust: 100%;-webkit-text-size-adjust: 100%;">
+                                                <table border="0" cellpadding="0" cellspacing="0" width="600" class="templateContainer" style="border-collapse: collapse;mso-table-lspace: 0pt;mso-table-rspace: 0pt;-ms-text-size-adjust: 100%;-webkit-text-size-adjust: 100%;">
+                                                    <tr>
+                                                        <td align="left" valign="top" class="columnsContainer" width="33%" style="mso-line-height-rule: exactly;-ms-text-size-adjust: 100%;-webkit-text-size-adjust: 100%;">
+                                                            <table align="left" border="0" cellpadding="0" cellspacing="0" width="100%" class="templateColumn" style="border-collapse: collapse;mso-table-lspace: 0pt;mso-table-rspace: 0pt;-ms-text-size-adjust: 100%;-webkit-text-size-adjust: 100%;float: left;">
+                                                                <tr>
+                                                                    <td valign="top" class="leftColumnContainer" style="mso-line-height-rule: exactly;-ms-text-size-adjust: 100%;-webkit-text-size-adjust: 100%;"><table border="0" cellpadding="0" cellspacing="0" width="100%" class="mcnTextBlock" style="min-width: 100%;border-collapse: collapse;mso-table-lspace: 0pt;mso-table-rspace: 0pt;-ms-text-size-adjust: 100%;-webkit-text-size-adjust: 100%;">
+    <tbody class="mcnTextBlockOuter">
+        <tr>
+            <td valign="top" class="mcnTextBlockInner" style="padding-top: 9px;mso-line-height-rule: exactly;-ms-text-size-adjust: 100%;-webkit-text-size-adjust: 100%;">
+              	<!--[if mso]>
+				<table align="left" border="0" cellspacing="0" cellpadding="0" width="100%" style="width:100%;">
+				<tr>
+				<![endif]-->
+			    
+				<!--[if mso]>
+				<td valign="top" width="200" style="width:200px;">
+				<![endif]-->
+                <table align="left" border="0" cellpadding="0" cellspacing="0" style="max-width: 100%;min-width: 100%;border-collapse: collapse;mso-table-lspace: 0pt;mso-table-rspace: 0pt;-ms-text-size-adjust: 100%;-webkit-text-size-adjust: 100%;float: left;" width="100%" class="mcnTextContentContainer">
+                    <tbody><tr>
+                        
+                        <td valign="top" class="mcnTextContent" style="padding-top: 0;padding-right: 18px;padding-bottom: 9px;padding-left: 18px;mso-line-height-rule: exactly;-ms-text-size-adjust: 100%;-webkit-text-size-adjust: 100%;word-break: break-word;color: #404040;font-family: Verdana;font-size: 12px;line-height: 150%;text-align: left;">
+                        
+                            
+                        </td>
+                    </tr>
+                </tbody></table>
+				<!--[if mso]>
+				</td>
+				<![endif]-->
+                
+				<!--[if mso]>
+				</tr>
+				</table>
+				<![endif]-->
+            </td>
+        </tr>
+    </tbody>
+</table></td>
+                                                                </tr>
+                                                            </table>
+                                                        </td>
+                                                        <td align="left" valign="top" class="columnsContainer" width="33%" style="mso-line-height-rule: exactly;-ms-text-size-adjust: 100%;-webkit-text-size-adjust: 100%;">
+                                                            <table align="left" border="0" cellpadding="0" cellspacing="0" width="100%" class="templateColumn" style="border-collapse: collapse;mso-table-lspace: 0pt;mso-table-rspace: 0pt;-ms-text-size-adjust: 100%;-webkit-text-size-adjust: 100%;float: left;">
+                                                                <tr>
+                                                                    <td valign="top" class="centerColumnContainer" style="mso-line-height-rule: exactly;-ms-text-size-adjust: 100%;-webkit-text-size-adjust: 100%;"><table border="0" cellpadding="0" cellspacing="0" width="100%" class="mcnTextBlock" style="min-width: 100%;border-collapse: collapse;mso-table-lspace: 0pt;mso-table-rspace: 0pt;-ms-text-size-adjust: 100%;-webkit-text-size-adjust: 100%;">
+    <tbody class="mcnTextBlockOuter">
+        <tr>
+            <td valign="top" class="mcnTextBlockInner" style="padding-top: 9px;mso-line-height-rule: exactly;-ms-text-size-adjust: 100%;-webkit-text-size-adjust: 100%;">
+              	<!--[if mso]>
+				<table align="left" border="0" cellspacing="0" cellpadding="0" width="100%" style="width:100%;">
+				<tr>
+				<![endif]-->
+			    
+				<!--[if mso]>
+				<td valign="top" width="200" style="width:200px;">
+				<![endif]-->
+                <table align="left" border="0" cellpadding="0" cellspacing="0" style="max-width: 100%;min-width: 100%;border-collapse: collapse;mso-table-lspace: 0pt;mso-table-rspace: 0pt;-ms-text-size-adjust: 100%;-webkit-text-size-adjust: 100%;float: left;" width="100%" class="mcnTextContentContainer">
+                    <tbody><tr>
+                        
+                        <td valign="top" class="mcnTextContent" style="padding-top: 0;padding-right: 18px;padding-bottom: 9px;padding-left: 18px;mso-line-height-rule: exactly;-ms-text-size-adjust: 100%;-webkit-text-size-adjust: 100%;word-break: break-word;color: #404040;font-family: Verdana;font-size: 12px;line-height: 150%;text-align: left;">
+                        
+                            
+                        </td>
+                    </tr>
+                </tbody></table>
+				<!--[if mso]>
+				</td>
+				<![endif]-->
+                
+				<!--[if mso]>
+				</tr>
+				</table>
+				<![endif]-->
+            </td>
+        </tr>
+    </tbody>
+</table></td>
+                                                                </tr>
+                                                            </table>
+                                                        </td>
+                                                        <td align="left" valign="top" class="columnsContainer" width="33%" style="mso-line-height-rule: exactly;-ms-text-size-adjust: 100%;-webkit-text-size-adjust: 100%;">
+                                                            <table align="left" border="0" cellpadding="0" cellspacing="0" width="100%" class="templateColumn" style="border-collapse: collapse;mso-table-lspace: 0pt;mso-table-rspace: 0pt;-ms-text-size-adjust: 100%;-webkit-text-size-adjust: 100%;float: left;">
+                                                                <tr>
+                                                                    <td valign="top" class="rightColumnContainer" style="mso-line-height-rule: exactly;-ms-text-size-adjust: 100%;-webkit-text-size-adjust: 100%;"><table border="0" cellpadding="0" cellspacing="0" width="100%" class="mcnTextBlock" style="min-width: 100%;border-collapse: collapse;mso-table-lspace: 0pt;mso-table-rspace: 0pt;-ms-text-size-adjust: 100%;-webkit-text-size-adjust: 100%;">
+    <tbody class="mcnTextBlockOuter">
+        <tr>
+            <td valign="top" class="mcnTextBlockInner" style="padding-top: 9px;mso-line-height-rule: exactly;-ms-text-size-adjust: 100%;-webkit-text-size-adjust: 100%;">
+              	<!--[if mso]>
+				<table align="left" border="0" cellspacing="0" cellpadding="0" width="100%" style="width:100%;">
+				<tr>
+				<![endif]-->
+			    
+				<!--[if mso]>
+				<td valign="top" width="200" style="width:200px;">
+				<![endif]-->
+                <table align="left" border="0" cellpadding="0" cellspacing="0" style="max-width: 100%;min-width: 100%;border-collapse: collapse;mso-table-lspace: 0pt;mso-table-rspace: 0pt;-ms-text-size-adjust: 100%;-webkit-text-size-adjust: 100%;float: left;" width="100%" class="mcnTextContentContainer">
+                    <tbody><tr>
+                        
+                        <td valign="top" class="mcnTextContent" style="padding-top: 0;padding-right: 18px;padding-bottom: 9px;padding-left: 18px;mso-line-height-rule: exactly;-ms-text-size-adjust: 100%;-webkit-text-size-adjust: 100%;word-break: break-word;color: #404040;font-family: Verdana;font-size: 12px;line-height: 150%;text-align: left;">
+                        
+                            
+                        </td>
+                    </tr>
+                </tbody></table>
+				<!--[if mso]>
+				</td>
+				<![endif]-->
+                
+				<!--[if mso]>
+				</tr>
+				</table>
+				<![endif]-->
+            </td>
+        </tr>
+    </tbody>
+</table></td>
+                                                                </tr>
+                                                            </table>
+                                                        </td>
+                                                    </tr>
+                                                </table>
+                                            </td>
+                                        </tr>
+                                    </table>
+                                    <!-- // END COLUMNS -->
+                                </td>
+                            </tr>
+                            <tr>
+                                <td align="center" valign="top" style="mso-line-height-rule: exactly;-ms-text-size-adjust: 100%;-webkit-text-size-adjust: 100%;">
+                                    <!-- BEGIN BODY // -->
+                                    <table border="0" cellpadding="0" cellspacing="0" width="100%" id="templateBody" style="border-collapse: collapse;mso-table-lspace: 0pt;mso-table-rspace: 0pt;-ms-text-size-adjust: 100%;-webkit-text-size-adjust: 100%;background-color: #F5F5F5;border-top: 0;border-bottom: 0;">
+                                        <tr>
+                                            <td align="center" valign="top" style="mso-line-height-rule: exactly;-ms-text-size-adjust: 100%;-webkit-text-size-adjust: 100%;">
+                                                <table border="0" cellpadding="0" cellspacing="0" width="600" class="templateContainer" style="border-collapse: collapse;mso-table-lspace: 0pt;mso-table-rspace: 0pt;-ms-text-size-adjust: 100%;-webkit-text-size-adjust: 100%;">
+                                                    <tr>
+                                                        <td align="center" valign="top" style="padding-top: 9px;padding-right: 5px;padding-bottom: 18px;padding-left: 5px;mso-line-height-rule: exactly;-ms-text-size-adjust: 100%;-webkit-text-size-adjust: 100%;">
+                                                            <table border="0" cellpadding="0" cellspacing="0" width="100%" id="bodyBackground" style="border-collapse: collapse;mso-table-lspace: 0pt;mso-table-rspace: 0pt;-ms-text-size-adjust: 100%;-webkit-text-size-adjust: 100%;background-color: #FFFFFF;border: 1px solid #D5D5D5;">
+                                                                <tr>
+                                                                    <td valign="top" class="bodyContainer" style="padding-top: 9px;padding-bottom: 9px;mso-line-height-rule: exactly;-ms-text-size-adjust: 100%;-webkit-text-size-adjust: 100%;"><table border="0" cellpadding="0" cellspacing="0" width="100%" class="mcnDividerBlock" style="min-width: 100%;border-collapse: collapse;mso-table-lspace: 0pt;mso-table-rspace: 0pt;-ms-text-size-adjust: 100%;-webkit-text-size-adjust: 100%;table-layout: fixed !important;">
+    <tbody class="mcnDividerBlockOuter">
+        <tr>
+            <td class="mcnDividerBlockInner" style="min-width: 100%;padding: 18px;mso-line-height-rule: exactly;-ms-text-size-adjust: 100%;-webkit-text-size-adjust: 100%;">
+                <table class="mcnDividerContent" border="0" cellpadding="0" cellspacing="0" width="100%" style="min-width: 100%;border-top: 2px dashed #222222;border-collapse: collapse;mso-table-lspace: 0pt;mso-table-rspace: 0pt;-ms-text-size-adjust: 100%;-webkit-text-size-adjust: 100%;">
+                    <tbody><tr>
+                        <td style="mso-line-height-rule: exactly;-ms-text-size-adjust: 100%;-webkit-text-size-adjust: 100%;">
+                            <span></span>
+                        </td>
+                    </tr>
+                </tbody></table>
+<!--            
+                <td class="mcnDividerBlockInner" style="padding: 18px;">
+                <hr class="mcnDividerContent" style="border-bottom-color:none; border-left-color:none; border-right-color:none; border-bottom-width:0; border-left-width:0; border-right-width:0; margin-top:0; margin-right:0; margin-bottom:0; margin-left:0;" />
+-->
+            </td>
+        </tr>
+    </tbody>
+</table><table border="0" cellpadding="0" cellspacing="0" width="100%" class="mcnTextBlock" style="min-width: 100%;border-collapse: collapse;mso-table-lspace: 0pt;mso-table-rspace: 0pt;-ms-text-size-adjust: 100%;-webkit-text-size-adjust: 100%;">
+    <tbody class="mcnTextBlockOuter">
+        <tr>
+            <td valign="top" class="mcnTextBlockInner" style="padding-top: 9px;mso-line-height-rule: exactly;-ms-text-size-adjust: 100%;-webkit-text-size-adjust: 100%;">
+              	<!--[if mso]>
+				<table align="left" border="0" cellspacing="0" cellpadding="0" width="100%" style="width:100%;">
+				<tr>
+				<![endif]-->
+			    
+				<!--[if mso]>
+				<td valign="top" width="589" style="width:589px;">
+				<![endif]-->
+                <table align="left" border="0" cellpadding="0" cellspacing="0" style="max-width: 100%;min-width: 100%;border-collapse: collapse;mso-table-lspace: 0pt;mso-table-rspace: 0pt;-ms-text-size-adjust: 100%;-webkit-text-size-adjust: 100%;float: left;" width="100%" class="mcnTextContentContainer">
+                    <tbody><tr>
+                        
+                        <td valign="top" class="mcnTextContent" style="padding-top: 0;padding-right: 18px;padding-bottom: 9px;padding-left: 18px;mso-line-height-rule: exactly;-ms-text-size-adjust: 100%;-webkit-text-size-adjust: 100%;word-break: break-word;color: #202020;font-family: Verdana;font-size: 14px;line-height: 150%;text-align: left;">
+                        
+                            <div style="text-align: center;"><span style="font-size:15px">★&nbsp;ChemLinked Japanメールマガジン ★<br>
+https://jp.chemlinked.com/</span></div>
+
+                        </td>
+                    </tr>
+                </tbody></table>
+				<!--[if mso]>
+				</td>
+				<![endif]-->
+                
+				<!--[if mso]>
+				</tr>
+				</table>
+				<![endif]-->
+            </td>
+        </tr>
+    </tbody>
+</table><table border="0" cellpadding="0" cellspacing="0" width="100%" class="mcnDividerBlock" style="min-width: 100%;border-collapse: collapse;mso-table-lspace: 0pt;mso-table-rspace: 0pt;-ms-text-size-adjust: 100%;-webkit-text-size-adjust: 100%;table-layout: fixed !important;">
+    <tbody class="mcnDividerBlockOuter">
+        <tr>
+            <td class="mcnDividerBlockInner" style="min-width: 100%;padding: 18px;mso-line-height-rule: exactly;-ms-text-size-adjust: 100%;-webkit-text-size-adjust: 100%;">
+                <table class="mcnDividerContent" border="0" cellpadding="0" cellspacing="0" width="100%" style="min-width: 100%;border-top: 2px dashed #222222;border-collapse: collapse;mso-table-lspace: 0pt;mso-table-rspace: 0pt;-ms-text-size-adjust: 100%;-webkit-text-size-adjust: 100%;">
+                    <tbody><tr>
+                        <td style="mso-line-height-rule: exactly;-ms-text-size-adjust: 100%;-webkit-text-size-adjust: 100%;">
+                            <span></span>
+                        </td>
+                    </tr>
+                </tbody></table>
+<!--            
+                <td class="mcnDividerBlockInner" style="padding: 18px;">
+                <hr class="mcnDividerContent" style="border-bottom-color:none; border-left-color:none; border-right-color:none; border-bottom-width:0; border-left-width:0; border-right-width:0; margin-top:0; margin-right:0; margin-bottom:0; margin-left:0;" />
+-->
+            </td>
+        </tr>
+    </tbody>
+</table><table border="0" cellpadding="0" cellspacing="0" width="100%" class="mcnTextBlock" style="min-width: 100%;border-collapse: collapse;mso-table-lspace: 0pt;mso-table-rspace: 0pt;-ms-text-size-adjust: 100%;-webkit-text-size-adjust: 100%;">
+    <tbody class="mcnTextBlockOuter">
+        <tr>
+            <td valign="top" class="mcnTextBlockInner" style="padding-top: 9px;mso-line-height-rule: exactly;-ms-text-size-adjust: 100%;-webkit-text-size-adjust: 100%;">
+              	<!--[if mso]>
+				<table align="left" border="0" cellspacing="0" cellpadding="0" width="100%" style="width:100%;">
+				<tr>
+				<![endif]-->
+			    
+				<!--[if mso]>
+				<td valign="top" width="589" style="width:589px;">
+				<![endif]-->
+                <table align="left" border="0" cellpadding="0" cellspacing="0" style="max-width: 100%;min-width: 100%;border-collapse: collapse;mso-table-lspace: 0pt;mso-table-rspace: 0pt;-ms-text-size-adjust: 100%;-webkit-text-size-adjust: 100%;float: left;" width="100%" class="mcnTextContentContainer">
+                    <tbody><tr>
+                        
+                        <td valign="top" class="mcnTextContent" style="padding-top: 0;padding-right: 18px;padding-bottom: 9px;padding-left: 18px;mso-line-height-rule: exactly;-ms-text-size-adjust: 100%;-webkit-text-size-adjust: 100%;word-break: break-word;color: #202020;font-family: Verdana;font-size: 14px;line-height: 150%;text-align: left;">
+                        
+__INTRO__
+
+                        </td>
+                    </tr>
+                </tbody></table>
+				<!--[if mso]>
+				</td>
+				<![endif]-->
+                
+				<!--[if mso]>
+				</tr>
+				</table>
+				<![endif]-->
+            </td>
+        </tr>
+    </tbody>
+</table><table border="0" cellpadding="0" cellspacing="0" width="100%" class="mcnTextBlock" style="min-width: 100%;border-collapse: collapse;mso-table-lspace: 0pt;mso-table-rspace: 0pt;-ms-text-size-adjust: 100%;-webkit-text-size-adjust: 100%;">
+    <tbody class="mcnTextBlockOuter">
+        <tr>
+            <td valign="top" class="mcnTextBlockInner" style="padding-top: 9px;mso-line-height-rule: exactly;-ms-text-size-adjust: 100%;-webkit-text-size-adjust: 100%;">
+              	<!--[if mso]>
+				<table align="left" border="0" cellspacing="0" cellpadding="0" width="100%" style="width:100%;">
+				<tr>
+				<![endif]-->
+			    
+				<!--[if mso]>
+				<td valign="top" width="589" style="width:589px;">
+				<![endif]-->
+                <table align="left" border="0" cellpadding="0" cellspacing="0" style="max-width: 100%;min-width: 100%;border-collapse: collapse;mso-table-lspace: 0pt;mso-table-rspace: 0pt;-ms-text-size-adjust: 100%;-webkit-text-size-adjust: 100%;float: left;" width="100%" class="mcnTextContentContainer">
+                    <tbody><tr>
+                        
+                        <td valign="top" class="mcnTextContent" style="padding-top: 0;padding-right: 18px;padding-bottom: 9px;padding-left: 18px;mso-line-height-rule: exactly;-ms-text-size-adjust: 100%;-webkit-text-size-adjust: 100%;word-break: break-word;color: #202020;font-family: Verdana;font-size: 14px;line-height: 150%;text-align: left;">
+                        
+__LIST__
+
+                        </td>
+                    </tr>
+                </tbody></table>
+				<!--[if mso]>
+				</td>
+				<![endif]-->
+                
+				<!--[if mso]>
+				</tr>
+				</table>
+				<![endif]-->
+            </td>
+        </tr>
+    </tbody>
+</table><table border="0" cellpadding="0" cellspacing="0" width="100%" class="mcnTextBlock" style="min-width: 100%;border-collapse: collapse;mso-table-lspace: 0pt;mso-table-rspace: 0pt;-ms-text-size-adjust: 100%;-webkit-text-size-adjust: 100%;">
+    <tbody class="mcnTextBlockOuter">
+        <tr>
+            <td valign="top" class="mcnTextBlockInner" style="padding-top: 9px;mso-line-height-rule: exactly;-ms-text-size-adjust: 100%;-webkit-text-size-adjust: 100%;">
+              	<!--[if mso]>
+				<table align="left" border="0" cellspacing="0" cellpadding="0" width="100%" style="width:100%;">
+				<tr>
+				<![endif]-->
+			    
+				<!--[if mso]>
+				<td valign="top" width="589" style="width:589px;">
+				<![endif]-->
+                <table align="left" border="0" cellpadding="0" cellspacing="0" style="max-width: 100%;min-width: 100%;border-collapse: collapse;mso-table-lspace: 0pt;mso-table-rspace: 0pt;-ms-text-size-adjust: 100%;-webkit-text-size-adjust: 100%;float: left;" width="100%" class="mcnTextContentContainer">
+                    <tbody><tr>
+                        
+                        <td valign="top" class="mcnTextContent" style="padding-top: 0;padding-right: 18px;padding-bottom: 9px;padding-left: 18px;mso-line-height-rule: exactly;-ms-text-size-adjust: 100%;-webkit-text-size-adjust: 100%;word-break: break-word;color: #202020;font-family: Verdana;font-size: 14px;line-height: 150%;text-align: left;">
+                        
+__NOTE__
+
+                        </td>
+                    </tr>
+                </tbody></table>
+				<!--[if mso]>
+				</td>
+				<![endif]-->
+                
+				<!--[if mso]>
+				</tr>
+				</table>
+				<![endif]-->
+            </td>
+        </tr>
+    </tbody>
+</table><table border="0" cellpadding="0" cellspacing="0" width="100%" class="mcnTextBlock" style="min-width: 100%;border-collapse: collapse;mso-table-lspace: 0pt;mso-table-rspace: 0pt;-ms-text-size-adjust: 100%;-webkit-text-size-adjust: 100%;">
+    <tbody class="mcnTextBlockOuter">
+        <tr>
+            <td valign="top" class="mcnTextBlockInner" style="padding-top: 9px;mso-line-height-rule: exactly;-ms-text-size-adjust: 100%;-webkit-text-size-adjust: 100%;">
+              	<!--[if mso]>
+				<table align="left" border="0" cellspacing="0" cellpadding="0" width="100%" style="width:100%;">
+				<tr>
+				<![endif]-->
+			    
+				<!--[if mso]>
+				<td valign="top" width="589" style="width:589px;">
+				<![endif]-->
+                <table align="left" border="0" cellpadding="0" cellspacing="0" style="max-width: 100%;min-width: 100%;border-collapse: collapse;mso-table-lspace: 0pt;mso-table-rspace: 0pt;-ms-text-size-adjust: 100%;-webkit-text-size-adjust: 100%;float: left;" width="100%" class="mcnTextContentContainer">
+                    <tbody><tr>
+                        
+                        <td valign="top" class="mcnTextContent" style="padding-top: 0;padding-right: 18px;padding-bottom: 9px;padding-left: 18px;mso-line-height-rule: exactly;-ms-text-size-adjust: 100%;-webkit-text-size-adjust: 100%;word-break: break-word;color: #202020;font-family: Verdana;font-size: 14px;line-height: 150%;text-align: left;">
+                        
+                            
+                        </td>
+                    </tr>
+                </tbody></table>
+				<!--[if mso]>
+				</td>
+				<![endif]-->
+                
+				<!--[if mso]>
+				</tr>
+				</table>
+				<![endif]-->
+            </td>
+        </tr>
+    </tbody>
+</table><table border="0" cellpadding="0" cellspacing="0" width="100%" class="mcnTextBlock" style="min-width: 100%;border-collapse: collapse;mso-table-lspace: 0pt;mso-table-rspace: 0pt;-ms-text-size-adjust: 100%;-webkit-text-size-adjust: 100%;">
+    <tbody class="mcnTextBlockOuter">
+        <tr>
+            <td valign="top" class="mcnTextBlockInner" style="padding-top: 9px;mso-line-height-rule: exactly;-ms-text-size-adjust: 100%;-webkit-text-size-adjust: 100%;">
+              	<!--[if mso]>
+				<table align="left" border="0" cellspacing="0" cellpadding="0" width="100%" style="width:100%;">
+				<tr>
+				<![endif]-->
+			    
+				<!--[if mso]>
+				<td valign="top" width="589" style="width:589px;">
+				<![endif]-->
+                <table align="left" border="0" cellpadding="0" cellspacing="0" style="max-width: 100%;min-width: 100%;border-collapse: collapse;mso-table-lspace: 0pt;mso-table-rspace: 0pt;-ms-text-size-adjust: 100%;-webkit-text-size-adjust: 100%;float: left;" width="100%" class="mcnTextContentContainer">
+                    <tbody><tr>
+                        
+                        <td valign="top" class="mcnTextContent" style="padding-top: 0;padding-right: 18px;padding-bottom: 9px;padding-left: 18px;mso-line-height-rule: exactly;-ms-text-size-adjust: 100%;-webkit-text-size-adjust: 100%;word-break: break-word;color: #202020;font-family: Verdana;font-size: 14px;line-height: 150%;text-align: left;">
+                        
+                            <span style="font-size:20px"><strong>__GUIDE__</strong></span>
+                        </td>
+                    </tr>
+                </tbody></table>
+				<!--[if mso]>
+				</td>
+				<![endif]-->
+                
+				<!--[if mso]>
+				</tr>
+				</table>
+				<![endif]-->
+            </td>
+        </tr>
+    </tbody>
+</table><table border="0" cellpadding="0" cellspacing="0" width="100%" class="mcnDividerBlock" style="min-width: 100%;border-collapse: collapse;mso-table-lspace: 0pt;mso-table-rspace: 0pt;-ms-text-size-adjust: 100%;-webkit-text-size-adjust: 100%;table-layout: fixed !important;">
+    <tbody class="mcnDividerBlockOuter">
+        <tr>
+            <td class="mcnDividerBlockInner" style="min-width: 100%;padding: 18px;mso-line-height-rule: exactly;-ms-text-size-adjust: 100%;-webkit-text-size-adjust: 100%;">
+                <table class="mcnDividerContent" border="0" cellpadding="0" cellspacing="0" width="100%" style="min-width: 100%;border-top: 2px solid #EAEAEA;border-collapse: collapse;mso-table-lspace: 0pt;mso-table-rspace: 0pt;-ms-text-size-adjust: 100%;-webkit-text-size-adjust: 100%;">
+                    <tbody><tr>
+                        <td style="mso-line-height-rule: exactly;-ms-text-size-adjust: 100%;-webkit-text-size-adjust: 100%;">
+                            <span></span>
+                        </td>
+                    </tr>
+                </tbody></table>
+<!--            
+                <td class="mcnDividerBlockInner" style="padding: 18px;">
+                <hr class="mcnDividerContent" style="border-bottom-color:none; border-left-color:none; border-right-color:none; border-bottom-width:0; border-left-width:0; border-right-width:0; margin-top:0; margin-right:0; margin-bottom:0; margin-left:0;" />
+-->
+            </td>
+        </tr>
+    </tbody>
+__CARDS__
+</table><table border="0" cellpadding="0" cellspacing="0" width="100%" class="mcnTextBlock" style="min-width: 100%;border-collapse: collapse;mso-table-lspace: 0pt;mso-table-rspace: 0pt;-ms-text-size-adjust: 100%;-webkit-text-size-adjust: 100%;">
+    <tbody class="mcnTextBlockOuter">
+        <tr>
+            <td valign="top" class="mcnTextBlockInner" style="padding-top: 9px;mso-line-height-rule: exactly;-ms-text-size-adjust: 100%;-webkit-text-size-adjust: 100%;">
+              	<!--[if mso]>
+				<table align="left" border="0" cellspacing="0" cellpadding="0" width="100%" style="width:100%;">
+				<tr>
+				<![endif]-->
+			    
+				<!--[if mso]>
+				<td valign="top" width="589" style="width:589px;">
+				<![endif]-->
+                <table align="left" border="0" cellpadding="0" cellspacing="0" style="max-width: 100%;min-width: 100%;border-collapse: collapse;mso-table-lspace: 0pt;mso-table-rspace: 0pt;-ms-text-size-adjust: 100%;-webkit-text-size-adjust: 100%;float: left;" width="100%" class="mcnTextContentContainer">
+                    <tbody><tr>
+                        
+                        <td valign="top" class="mcnTextContent" style="padding: 0px 18px 9px;line-height: 100%;mso-line-height-rule: exactly;-ms-text-size-adjust: 100%;-webkit-text-size-adjust: 100%;word-break: break-word;color: #202020;font-family: Verdana;font-size: 14px;text-align: left;">
+                        
+                            <h2 style="text-align: center;display: block;margin: 0;padding: 0;font-family: Verdana;font-size: 20px;font-style: normal;font-weight: bold;line-height: 125%;letter-spacing: -.75px;color: #991B4A !important;"><span style="color:#000000"><span style="font-size:16px"><strong>◎ChemLinked Japan活用のメリット◎</strong></span></span></h2>
+
+                        </td>
+                    </tr>
+                </tbody></table>
+				<!--[if mso]>
+				</td>
+				<![endif]-->
+                
+				<!--[if mso]>
+				</tr>
+				</table>
+				<![endif]-->
+            </td>
+        </tr>
+    </tbody>
+</table><table border="0" cellpadding="0" cellspacing="0" width="100%" class="mcnTextBlock" style="min-width: 100%;border-collapse: collapse;mso-table-lspace: 0pt;mso-table-rspace: 0pt;-ms-text-size-adjust: 100%;-webkit-text-size-adjust: 100%;">
+    <tbody class="mcnTextBlockOuter">
+        <tr>
+            <td valign="top" class="mcnTextBlockInner" style="padding-top: 9px;mso-line-height-rule: exactly;-ms-text-size-adjust: 100%;-webkit-text-size-adjust: 100%;">
+              	<!--[if mso]>
+				<table align="left" border="0" cellspacing="0" cellpadding="0" width="100%" style="width:100%;">
+				<tr>
+				<![endif]-->
+			    
+				<!--[if mso]>
+				<td valign="top" width="589" style="width:589px;">
+				<![endif]-->
+                <table align="left" border="0" cellpadding="0" cellspacing="0" style="max-width: 100%;min-width: 100%;border-collapse: collapse;mso-table-lspace: 0pt;mso-table-rspace: 0pt;-ms-text-size-adjust: 100%;-webkit-text-size-adjust: 100%;float: left;" width="100%" class="mcnTextContentContainer">
+                    <tbody><tr>
+                        
+                        <td valign="top" class="mcnTextContent" style="padding-top: 0;padding-right: 18px;padding-bottom: 9px;padding-left: 18px;mso-line-height-rule: exactly;-ms-text-size-adjust: 100%;-webkit-text-size-adjust: 100%;word-break: break-word;color: #202020;font-family: Verdana;font-size: 14px;line-height: 150%;text-align: left;">
+                        
+                            <div style="text-align: justify;">--------------------------------------------------------------------------</div>
+
+<div style="text-align: justify;">■ 現地の化学品、EHS、食品接触材料法規制最新情報をお届け！<br>
+■ 電子版データ、Webセミナー、レポートなどで法規制対応を支援！<br>
+--------------------------------------------------------------------------<br>
+中国を含むアジア太平洋地域において、化学品や食品接触材料、EHSで長年の法規制対応の経験を持つコンサルティング会社REACH24Hが運営する情報収集ツールです。<br>
+同社の専門家及び編集者がご知見を活かして、法規制の最新情報や市場動向を収集し、分析や企業側対策を交えてお届けします。<br>
+<br>
+変化しつつある法規制を追跡し、当局の発信から市場動向まで、様々な角度やテーマから分析し、多様な形で皆様の法規制対応に役立つ内容をご提供しています。<br>
+<br>
+会員区分及び利用規約は<a href="https://jp.chemlinked.com/membership" target="_blank" style="mso-line-height-rule: exactly;-ms-text-size-adjust: 100%;-webkit-text-size-adjust: 100%;color: #991B4A;font-weight: bold;text-decoration: none;">こちら</a><br>
+<br>
+ChemLinked運営サイト一覧<br>
+英語：<a href="https://chemlinked.com/" target="_blank" style="mso-line-height-rule: exactly;-ms-text-size-adjust: 100%;-webkit-text-size-adjust: 100%;color: #991B4A;font-weight: bold;text-decoration: none;">Chemicalサイト</a>（化学品）｜<a href="https://food.chemlinked.com/" target="_blank" style="mso-line-height-rule: exactly;-ms-text-size-adjust: 100%;-webkit-text-size-adjust: 100%;color: #991B4A;font-weight: bold;text-decoration: none;">Foodサイト</a>（食品）｜<a href="https://cosmetic.chemlinked.com/" target="_blank" style="mso-line-height-rule: exactly;-ms-text-size-adjust: 100%;-webkit-text-size-adjust: 100%;color: #991B4A;font-weight: bold;text-decoration: none;">Cosmeticサイト</a>（化粧品）｜<a href="https://agrochemical.chemlinked.com/" target="_blank" style="mso-line-height-rule: exactly;-ms-text-size-adjust: 100%;-webkit-text-size-adjust: 100%;color: #991B4A;font-weight: bold;text-decoration: none;">Agrochemicalサイト</a>（農業用化学品）<br>
+日本語：<a href="https://jp.chemlinked.com/" target="_blank" style="mso-line-height-rule: exactly;-ms-text-size-adjust: 100%;-webkit-text-size-adjust: 100%;color: #991B4A;font-weight: bold;text-decoration: none;">ChemLinked　Japan</a></div>
+
+                        </td>
+                    </tr>
+                </tbody></table>
+				<!--[if mso]>
+				</td>
+				<![endif]-->
+                
+				<!--[if mso]>
+				</tr>
+				</table>
+				<![endif]-->
+            </td>
+        </tr>
+    </tbody>
+</table><table border="0" cellpadding="0" cellspacing="0" width="100%" class="mcnButtonBlock" style="min-width: 100%;border-collapse: collapse;mso-table-lspace: 0pt;mso-table-rspace: 0pt;-ms-text-size-adjust: 100%;-webkit-text-size-adjust: 100%;">
+    <tbody class="mcnButtonBlockOuter">
+        <tr>
+            <td style="padding-top: 0;padding-right: 18px;padding-bottom: 18px;padding-left: 18px;mso-line-height-rule: exactly;-ms-text-size-adjust: 100%;-webkit-text-size-adjust: 100%;" valign="top" align="center" class="mcnButtonBlockInner">
+                <table border="0" cellpadding="0" cellspacing="0" width="100%" class="mcnButtonContentContainer" style="border-collapse: separate !important;border-radius: 0px;background-color: #4CAAD8;mso-table-lspace: 0pt;mso-table-rspace: 0pt;-ms-text-size-adjust: 100%;-webkit-text-size-adjust: 100%;">
+                    <tbody>
                         <tr>
-                            <td width="258" valign="top" style="padding: 9px 18px 9px 0;">
-                                <a href="${withUtm(imgLink)}" target="_blank"><img src="${b.imgUrl}" width="258" alt="${b.title}" style="max-width: 258px; width: 100%; border: 0; height: auto; display: block; -ms-interpolation-mode: bicubic;"></a>
-                            </td>
-                            <td valign="top" style="padding: 9px 0; color: #202020; font-family: Verdana, sans-serif; font-size: 14px; line-height: 150%; text-align: justify;">
-                                <div style="font-size: 18px; font-weight: bold; color: #991b4a; line-height: 130%; margin-bottom: 8px;">${b.title}</div>
-                                ${nl2br(b.desc)}
+                            <td align="center" valign="middle" class="mcnButtonContent" style="font-family: Arial;font-size: 24px;padding: 15px;mso-line-height-rule: exactly;-ms-text-size-adjust: 100%;-webkit-text-size-adjust: 100%;">
+                                <a class="mcnButton " title="14日間無料体験をお申込みこちら" href="https://jp.chemlinked.com/freetrial?url=http%3A%2F%2Fjp.chemlinked.com%2Fmembership" target="_blank" style="font-weight: bold;letter-spacing: normal;line-height: 100%;text-align: center;text-decoration: none;color: #FFFFFF;mso-line-height-rule: exactly;-ms-text-size-adjust: 100%;-webkit-text-size-adjust: 100%;display: block;">14日間無料体験をお申込みこちら</a>
                             </td>
                         </tr>
-                    </table>
-                    <table border="0" cellpadding="0" cellspacing="0" align="center" style="border-collapse: separate !important; border-radius: 4px; background-color: #2baadf; margin-top: 9px;">
+                    </tbody>
+                </table>
+            </td>
+        </tr>
+    </tbody>
+</table></td>
+                                                                </tr>
+                                                            </table>
+                                                        </td>
+                                                    </tr>
+                                                </table>
+                                            </td>
+                                        </tr>
+                                    </table>
+                                    <!-- // END BODY -->
+                                </td>
+                            </tr>
+                            <tr>
+                                <td align="center" valign="top" style="padding-bottom: 40px;mso-line-height-rule: exactly;-ms-text-size-adjust: 100%;-webkit-text-size-adjust: 100%;">
+                                    <!-- BEGIN FOOTER // -->
+                                    <table border="0" cellpadding="0" cellspacing="0" width="100%" id="templateFooter" style="border-collapse: collapse;mso-table-lspace: 0pt;mso-table-rspace: 0pt;-ms-text-size-adjust: 100%;-webkit-text-size-adjust: 100%;background-color: #DDDDDD;border-top: 0;border-bottom: 0;">
+                                        <tr>
+                                            <td align="center" valign="top" style="mso-line-height-rule: exactly;-ms-text-size-adjust: 100%;-webkit-text-size-adjust: 100%;">
+                                                <table border="0" cellpadding="0" cellspacing="0" width="600" class="templateContainer" style="border-collapse: collapse;mso-table-lspace: 0pt;mso-table-rspace: 0pt;-ms-text-size-adjust: 100%;-webkit-text-size-adjust: 100%;">
+                                                    <tr>
+                                                        <td valign="top" class="footerContainer" style="padding-top: 9px;padding-bottom: 9px;mso-line-height-rule: exactly;-ms-text-size-adjust: 100%;-webkit-text-size-adjust: 100%;"><table border="0" cellpadding="0" cellspacing="0" width="100%" class="mcnTextBlock" style="min-width: 100%;border-collapse: collapse;mso-table-lspace: 0pt;mso-table-rspace: 0pt;-ms-text-size-adjust: 100%;-webkit-text-size-adjust: 100%;">
+    <tbody class="mcnTextBlockOuter">
+        <tr>
+            <td valign="top" class="mcnTextBlockInner" style="padding-top: 9px;mso-line-height-rule: exactly;-ms-text-size-adjust: 100%;-webkit-text-size-adjust: 100%;">
+              	<!--[if mso]>
+				<table align="left" border="0" cellspacing="0" cellpadding="0" width="100%" style="width:100%;">
+				<tr>
+				<![endif]-->
+			    
+				<!--[if mso]>
+				<td valign="top" width="600" style="width:600px;">
+				<![endif]-->
+                <table align="left" border="0" cellpadding="0" cellspacing="0" style="max-width: 100%;min-width: 100%;border-collapse: collapse;mso-table-lspace: 0pt;mso-table-rspace: 0pt;-ms-text-size-adjust: 100%;-webkit-text-size-adjust: 100%;float: left;" width="100%" class="mcnTextContentContainer">
+                    <tbody><tr>
+                        
+                        <td valign="top" class="mcnTextContent" style="padding-top: 0;padding-right: 18px;padding-bottom: 9px;padding-left: 18px;mso-line-height-rule: exactly;-ms-text-size-adjust: 100%;-webkit-text-size-adjust: 100%;word-break: break-word;color: #404040;font-family: Verdana;font-size: 10px;line-height: 125%;text-align: left;">
+                        
+                            <div style="text-align: center;">
+<table align="center" border="0" cellpadding="0" cellspacing="0" style="width: 600px;border-collapse: collapse;mso-table-lspace: 0pt;mso-table-rspace: 0pt;-ms-text-size-adjust: 100%;-webkit-text-size-adjust: 100%;" width="600">
+	<tbody>
+		<tr>
+			<td style="mso-line-height-rule: exactly;-ms-text-size-adjust: 100%;-webkit-text-size-adjust: 100%;">
+			<table border="0" cellpadding="0" cellspacing="0" style="width: 100.0%;border-collapse: collapse;mso-table-lspace: 0pt;mso-table-rspace: 0pt;-ms-text-size-adjust: 100%;-webkit-text-size-adjust: 100%;" width="100%">
+				<tbody>
+					<tr>
+						<td style="text-align: left;mso-line-height-rule: exactly;-ms-text-size-adjust: 100%;-webkit-text-size-adjust: 100%;">メールが正しく表示されない場合は <a href="https://mailchi.mp/chemlinked/chemlinked-japan201815-13370070?e=[UNIQID]" target="_self" style="mso-line-height-rule: exactly;-ms-text-size-adjust: 100%;-webkit-text-size-adjust: 100%;color: #404040;font-weight: normal;text-decoration: underline;">こちらWebページ版をクリック</a><br>
+						このメールは、REACH24H Consulting Groupからのメール配信をご希望された方に送信しております&nbsp;今後メールの受信をご希望されない方は、こちらから <a href="https://chemlinked.us18.list-manage.com/unsubscribe?u=90f812c8598491dbd61143d91&id=cb0d9f1a5e&t=b&e=[UNIQID]&c=12aa494271" target="_self" style="mso-line-height-rule: exactly;-ms-text-size-adjust: 100%;-webkit-text-size-adjust: 100%;color: #404040;font-weight: normal;text-decoration: underline;">購読停止手続きが行えます</a></td>
+					</tr>
+				</tbody>
+			</table>
+			</td>
+		</tr>
+		<tr>
+			<td style="mso-line-height-rule: exactly;-ms-text-size-adjust: 100%;-webkit-text-size-adjust: 100%;">
+			<table border="0" cellpadding="0" cellspacing="0" style="width: 100.0%;border-collapse: collapse;mso-table-lspace: 0pt;mso-table-rspace: 0pt;-ms-text-size-adjust: 100%;-webkit-text-size-adjust: 100%;" width="100%">
+				<tbody>
+					<tr>
+						<td style="mso-line-height-rule: exactly;-ms-text-size-adjust: 100%;-webkit-text-size-adjust: 100%;">
+						<div style="text-align: left;"><br>
+						本メールは <a href="mailto:japan@chemlinked.com" target="_blank" style="mso-line-height-rule: exactly;-ms-text-size-adjust: 100%;-webkit-text-size-adjust: 100%;color: #404040;font-weight: normal;text-decoration: underline;">japan@chemlinked.com</a> より送信しております。<br>
+						文一西路1288号海創科技中心3号楼14層, 杭州, 浙江 〒311121, China</div>
+						<br>
+						<br>
+						Copyright © 2021 ChemLinked, All rights reserved.</td>
+					</tr>
+				</tbody>
+			</table>
+			</td>
+		</tr>
+	</tbody>
+</table>
+
+<div style="clear:both;">&nbsp;</div>
+</div>
+
+                        </td>
+                    </tr>
+                </tbody></table>
+				<!--[if mso]>
+				</td>
+				<![endif]-->
+                
+				<!--[if mso]>
+				</tr>
+				</table>
+				<![endif]-->
+            </td>
+        </tr>
+    </tbody>
+</table></td>
+                                                    </tr>
+                                                </table>
+                                            </td>
+                                        </tr>
+                                    </table>
+                                    <!-- // END FOOTER -->
+                                </td>
+                            </tr>
+                        </table>
+                        <!-- // END TEMPLATE -->
+                    </td>
+                </tr>
+            </table>
+        </center>
+    </body>
+</html>
+`;
+const withUtm = (link) => {
+    if (!link) return '#';
+    if (link.indexOf('utm_source=') > -1 || !/^https?:\/\/jp\.chemlinked\.com/.test(link)) return link;
+    return link + (link.indexOf('?') > -1 ? '&' : '?') + 'utm_source=edm';
+};
+const liJust = (t, l) => `	<li style="text-align: justify;margin-bottom: 5px;mso-line-height-rule: exactly;-ms-text-size-adjust: 100%;-webkit-text-size-adjust: 100%;"><a href="${l}" target="_blank" style="mso-line-height-rule: exactly;-ms-text-size-adjust: 100%;-webkit-text-size-adjust: 100%;color: #991B4A;font-weight: bold;text-decoration: none;"><span style="font-size:15px">${t}</span></a></li>`;
+const paras = (t) => t.split(/\n{2,}/).map(p => p.split('\n').join('<br>\n')).join('<br>\n<br>\n');
+const lines = (t) => t.split('\n').join('<br>\n');
+const justify = (inner) => '                            <div style="text-align: justify;"><span style="font-size:15px">' + inner + '</span></div>';
+const listUl = (items) => '                            <ul style="margin: 0;padding: 0 0 0 15px;">\n' + items.map(i => liJust(i.title, withUtm(i.link))).join('\n') + '\n</ul>';
+const ebCard = (bLink, bImg, bTitle, bDesc, bBtn) => `</table><table border="0" cellpadding="0" cellspacing="0" width="100%" class="mcnCaptionBlock" style="border-collapse: collapse;mso-table-lspace: 0pt;mso-table-rspace: 0pt;-ms-text-size-adjust: 100%;-webkit-text-size-adjust: 100%;">
+    <tbody class="mcnCaptionBlockOuter">
+        <tr>
+            <td class="mcnCaptionBlockInner" valign="top" style="padding: 9px;mso-line-height-rule: exactly;-ms-text-size-adjust: 100%;-webkit-text-size-adjust: 100%;">
+                
+
+
+
+<table border="0" cellpadding="0" cellspacing="0" class="mcnCaptionRightContentOuter" width="100%" style="border-collapse: collapse;mso-table-lspace: 0pt;mso-table-rspace: 0pt;-ms-text-size-adjust: 100%;-webkit-text-size-adjust: 100%;">
+    <tbody><tr>
+        <td valign="top" class="mcnCaptionRightContentInner" style="padding: 0 9px;mso-line-height-rule: exactly;-ms-text-size-adjust: 100%;-webkit-text-size-adjust: 100%;">
+            <table align="left" border="0" cellpadding="0" cellspacing="0" class="mcnCaptionRightImageContentContainer" width="258" style="border-collapse: collapse;mso-table-lspace: 0pt;mso-table-rspace: 0pt;-ms-text-size-adjust: 100%;-webkit-text-size-adjust: 100%;float: left;">
+                <tbody><tr>
+                    <td class="mcnCaptionRightImageContent" align="center" valign="top" style="mso-line-height-rule: exactly;-ms-text-size-adjust: 100%;-webkit-text-size-adjust: 100%;">
+                    
+                        
+                        <a href="${bLink}" title="" class="" target="_blank" style="mso-line-height-rule: exactly;-ms-text-size-adjust: 100%;-webkit-text-size-adjust: 100%;">
+                        
+
+                        <img alt="" src="${bImg}" width="258" style="max-width: 800px;border: 0;height: auto;outline: none;text-decoration: none;-ms-interpolation-mode: bicubic;vertical-align: bottom;" class="mcnImage">
+                        </a>
+
+                    
+                    </td>
+                </tr>
+            </tbody></table>
+            <table class="mcnCaptionRightTextContentContainer" align="right" border="0" cellpadding="0" cellspacing="0" width="258" style="border-collapse: collapse;mso-table-lspace: 0pt;mso-table-rspace: 0pt;-ms-text-size-adjust: 100%;-webkit-text-size-adjust: 100%;float: right;">
+                <tbody><tr>
+                    <td valign="top" class="mcnTextContent" style="mso-line-height-rule: exactly;-ms-text-size-adjust: 100%;-webkit-text-size-adjust: 100%;word-break: break-word;color: #202020;font-family: Verdana;font-size: 14px;line-height: 150%;text-align: left;">
+                        <div style="text-align: justify;"><span style="font-size:18px"><a href="${bLink}" target="_blank" style="mso-line-height-rule: exactly;-ms-text-size-adjust: 100%;-webkit-text-size-adjust: 100%;color: #991B4A;font-weight: bold;text-decoration: none;">${bTitle}</a></span><br>
+<span style="font-size:15px">${bDesc}</span></div>
+
+                    </td>
+                </tr>
+            </tbody></table>
+        </td>
+    </tr>
+</tbody></table>
+
+
+
+
+            </td>
+        </tr>
+    </tbody>
+</table><table border="0" cellpadding="0" cellspacing="0" width="100%" class="mcnTextBlock" style="min-width: 100%;border-collapse: collapse;mso-table-lspace: 0pt;mso-table-rspace: 0pt;-ms-text-size-adjust: 100%;-webkit-text-size-adjust: 100%;">
+    <tbody class="mcnTextBlockOuter">
+        <tr>
+            <td valign="top" class="mcnTextBlockInner" style="padding-top: 9px;mso-line-height-rule: exactly;-ms-text-size-adjust: 100%;-webkit-text-size-adjust: 100%;">
+              	<!--[if mso]>
+				<table align="left" border="0" cellspacing="0" cellpadding="0" width="100%" style="width:100%;">
+				<tr>
+				<![endif]-->
+			    
+				<!--[if mso]>
+				<td valign="top" width="589" style="width:589px;">
+				<![endif]-->
+                <table align="left" border="0" cellpadding="0" cellspacing="0" style="max-width: 100%;min-width: 100%;border-collapse: collapse;mso-table-lspace: 0pt;mso-table-rspace: 0pt;-ms-text-size-adjust: 100%;-webkit-text-size-adjust: 100%;float: left;" width="100%" class="mcnTextContentContainer">
+                    <tbody><tr>
+                        
+                        <td valign="top" class="mcnTextContent" style="padding-top: 0;padding-right: 18px;padding-bottom: 9px;padding-left: 18px;mso-line-height-rule: exactly;-ms-text-size-adjust: 100%;-webkit-text-size-adjust: 100%;word-break: break-word;color: #202020;font-family: Verdana;font-size: 14px;line-height: 150%;text-align: left;">
+                        
+                            
+                        </td>
+                    </tr>
+                </tbody></table>
+				<!--[if mso]>
+				</td>
+				<![endif]-->
+                
+				<!--[if mso]>
+				</tr>
+				</table>
+				<![endif]-->
+            </td>
+        </tr>
+    </tbody>
+</table><table border="0" cellpadding="0" cellspacing="0" width="100%" class="mcnButtonBlock" style="min-width: 100%;border-collapse: collapse;mso-table-lspace: 0pt;mso-table-rspace: 0pt;-ms-text-size-adjust: 100%;-webkit-text-size-adjust: 100%;">
+    <tbody class="mcnButtonBlockOuter">
+        <tr>
+            <td style="padding-top: 0;padding-right: 18px;padding-bottom: 18px;padding-left: 18px;mso-line-height-rule: exactly;-ms-text-size-adjust: 100%;-webkit-text-size-adjust: 100%;" valign="top" align="center" class="mcnButtonBlockInner">
+                <table border="0" cellpadding="0" cellspacing="0" width="100%" class="mcnButtonContentContainer" style="border-collapse: separate !important;border-radius: 4px;background-color: #2BAADF;mso-table-lspace: 0pt;mso-table-rspace: 0pt;-ms-text-size-adjust: 100%;-webkit-text-size-adjust: 100%;">
+                    <tbody>
                         <tr>
-                            <td align="center" valign="middle" style="font-family: Arial, sans-serif; font-size: 18px; padding: 14px 28px;">
-                                <a href="${withUtm(b.btnLink)}" target="_blank" style="font-weight: bold; letter-spacing: normal; line-height: 100%; text-align: center; text-decoration: none; color: #ffffff; display: block; mso-line-height-rule: exactly;">${b.btnText}</a>
+                            <td align="center" valign="middle" class="mcnButtonContent" style="font-family: Arial;font-size: 24px;padding: 18px;mso-line-height-rule: exactly;-ms-text-size-adjust: 100%;-webkit-text-size-adjust: 100%;">
+                                <a class="mcnButton " title="${bBtn}" href="${bLink}" target="_blank" style="font-weight: bold;letter-spacing: normal;line-height: 100%;text-align: center;text-decoration: none;color: #FFFFFF;mso-line-height-rule: exactly;-ms-text-size-adjust: 100%;-webkit-text-size-adjust: 100%;display: block;">${bBtn}</a>
                             </td>
                         </tr>
-                    </table>`;
-                    }).join(`
-                    <div style="border-top: 1px solid #eaeaea; margin: 18px 0; font-size: 1px; line-height: 1px;">&nbsp;</div>`);
+                    </tbody>
+                </table>
+            </td>
+        </tr>
+    </tbody>
+</table><table border="0" cellpadding="0" cellspacing="0" width="100%" class="mcnDividerBlock" style="min-width: 100%;border-collapse: collapse;mso-table-lspace: 0pt;mso-table-rspace: 0pt;-ms-text-size-adjust: 100%;-webkit-text-size-adjust: 100%;table-layout: fixed !important;">
+    <tbody class="mcnDividerBlockOuter">
+        <tr>
+            <td class="mcnDividerBlockInner" style="min-width: 100%;padding: 18px;mso-line-height-rule: exactly;-ms-text-size-adjust: 100%;-webkit-text-size-adjust: 100%;">
+                <table class="mcnDividerContent" border="0" cellpadding="0" cellspacing="0" width="100%" style="min-width: 100%;border-top: 2px solid #EAEAEA;border-collapse: collapse;mso-table-lspace: 0pt;mso-table-rspace: 0pt;-ms-text-size-adjust: 100%;-webkit-text-size-adjust: 100%;">
+                    <tbody><tr>
+                        <td style="mso-line-height-rule: exactly;-ms-text-size-adjust: 100%;-webkit-text-size-adjust: 100%;">
+                            <span></span>
+                        </td>
+                    </tr>
+                </tbody></table>
+<!--            
+                <td class="mcnDividerBlockInner" style="padding: 18px;">
+                <hr class="mcnDividerContent" style="border-bottom-color:none; border-left-color:none; border-right-color:none; border-bottom-width:0; border-left-width:0; border-right-width:0; margin-top:0; margin-right:0; margin-bottom:0; margin-left:0;" />
+-->
+            </td>
+        </tr>
+    </tbody>`;
+const app = createApp({
+    setup() {
+        const viewMode = ref('preview');
+        const copyBtnText = ref('📋 复制 HTML');
+        const mailData = reactive({
+  "title": "ChemLinked Japanメールマガジン　【新着Ebook】中国GB標準案 日本語訳3件—GHS分類・ラベル、接着剤中有害物質規制の最新動向を確認",
+  "intro": "　中国では現在、化学品の分類・表示や接着剤中の有害物質規制に関する国家標準（GB）の見直しが進められています。\n\n　ChemLinked Japanでは、このたび以下3件の標準案について、日本語仮訳Ebookをご用意いたします。",
+  "items": [
+    {
+      "title": "GB 30000.7-202X 化学品の分類とラベル規範 第7部分：引火性液体",
+      "link": "https://jp.chemlinked.com/epublication/gb-30000-7-202x"
+    },
+    {
+      "title": "GB 30000.15-20XX 化学品の分類とラベル規範 第15部分：酸化性固体",
+      "link": "https://jp.chemlinked.com/epublication/gb-30000-15-20xx"
+    },
+    {
+      "title": "GB XXXXX-XXXX 接着剤中の有害物質含有限度量（意見募集稿）",
+      "link": "https://jp.chemlinked.com/epublication/gb-xxxxx-xxxx-limit-of-harmful-substances-in-adhesives-draft-for-comments"
+    }
+  ],
+  "note": "　GB 30000.7-202X及びGB 30000.15-20XXは、国連GHS改訂第11版との整合を図るもので、引火性液体および酸化性固体の分類、危険有害性の伝達、ならびにラベル表示に適用されます。また、「一部強制」から「全面強制」へと移行する見込みです。\n\n　一方、「GB XXXXX-XXXX 接着剤中の有害物質含有限度量」は、既存の3つの強制性国家標準を統合・代替する新たなGB草案です。ホルムアルデヒド、ベンゼン、フタル酸エステル類、重金属、短鎖塩素化パラフィン（SCCP）など13種類の有害物質・物質群について限度量を設定し、芳香族アミン残留物、アルキルフェノール類、有機スズ化合物などの規制も新たに導入・拡充されています。",
+  "guideTitle": "▼ 日本語仮訳Ebookはこちら",
+  "books": [
+    {
+      "title": "GB 30000.7-202X\n化学品の分類とラベル規範\n第7部分：引火性液体",
+      "link": "https://jp.chemlinked.com/epublication/gb-30000-7-202x",
+      "imgUrl": "https://mcusercontent.com/90f812c8598491dbd61143d91/images/a79dfec8-edd5-b582-5c50-2b28789e2c35.png",
+      "desc": "　\n　2026年8月21日、GB 30000.7-202Xに関する意見募集の公告が発表されました。意見募集期間は2026年10月19日までとなります。\n\n　この標準は引火点および初留点のデータに基づいて引火性液体を4つの区分に分類します。2013年版と比較した主なコンプライアンス更新点としては、判定に開放式引火点を利用する規則の追加、引火点および初留点の参照試験標準の更新、ならびに国連GHS改訂第11版に合わせた絵表示（シンボル）、製品特定名義、注意書きコードの修正が含まれます。",
+      "btnText": "Ebookの詳細はこちら"
+    },
+    {
+      "title": "GB 30000.15-20XX\n化学品の分類とラベル規範\n第15部分：酸化性固体",
+      "link": "https://jp.chemlinked.com/epublication/gb-30000-15-20xx",
+      "imgUrl": "https://mcusercontent.com/90f812c8598491dbd61143d91/images/bb4b0c65-aa2d-73fe-149e-a9312e3ee054.png",
+      "desc": "　\n　2026年8月21日、GB 30000.15-20XXに関する意見募集の公告が発表されました。意見募集期間は2026年10月19日までとなります。\n\n　同標準はセルロースと混合した際の燃焼時間または燃焼速度に基づいて酸化性固体を3つの区分に分類します。最も重大なコンプライアンス更新点は、O.3試験法（重量分析）に基づく分類基準の追加です。さらに、参照試験方法がGB/T 21617に更新されたほか、区分1の酸化性固体に対する保管上の注意書き「P420 他の材料から離して保管すること」の追加など注意書きが見直され、その他の危険有害性情報や注意書きの表現も更新されます。",
+      "btnText": "Ebookの詳細はこちら"
+    },
+    {
+      "title": "GB XXXXX-XXXX\n接着剤中の有害物質含有限度量（意見募集稿）",
+      "link": "https://jp.chemlinked.com/epublication/gb-xxxxx-xxxx-limit-of-harmful-substances-in-adhesives-draft-for-comments",
+      "imgUrl": "https://mcusercontent.com/90f812c8598491dbd61143d91/images/1410a188-2b36-21d1-90d1-fbc9df22e487.png",
+      "desc": "　\n　本標準は現在まだ意見公募用草案の段階であり、最終的な公布日や施行日は定まっていません。草案では、13種類の有害物質または物質群に対する限度量が設定されています。\n\n　承認後は、対象となる溶剤型接着剤・水性接着剤・無溶剤型接着剤の製造業者が製品処方の見直し、生産プロセスの変更、試験体制の整備、包装および取扱説明書の更新、既存在庫およびラベルの管理を行えるよう、12か月の移行期間を設けることが推奨されています。",
+      "btnText": "Ebookの詳細はこちら"
+    }
+  ]
+});
+        const addItem = () => mailData.items.push({ title: '', link: '' });
+        const removeItem = (i) => mailData.items.splice(i, 1);
+        const addBook = () => mailData.books.push({ title: '', link: '', imgUrl: '', desc: '', btnText: 'Ebookの詳細はこちら' });
+        const removeBook = (i) => mailData.books.splice(i, 1);
+        const generatedHtml = computed(() => {
+            const d = mailData;
+            let s = SKELETON;
+            const R = (k, v) => { s = s.split(k).join(v); };
+            R('__TITLE__', d.title);
+            R('__INTRO__', justify(paras(d.intro)));
+            R('__LIST__', listUl(d.items));
+            R('__NOTE__', justify(paras(d.note)));
+            R('__GUIDE__', d.guideTitle);
+            R('__CARDS__', d.books.map(b => ebCard(withUtm(b.link), b.imgUrl, lines(b.title), lines(b.desc), b.btnText)).join('\n'));
+            return s;
+        });
+const copyHtml = async () => {
+    try {
+        await navigator.clipboard.writeText(generatedHtml.value);
+        copyBtnText.value = '🎉 复制成功，请粘贴到 Mailchimp Code 模式';
+        setTimeout(() => { copyBtnText.value = '📋 复制 HTML'; }, 2500);
+    } catch (err) {
+        viewMode.value = 'code';
+        alert('复制失败，请切换到源码视图全选复制');
+    }
+};
+        return { viewMode, copyBtnText, mailData, addItem, removeItem, addBook, removeBook, generatedHtml, copyHtml };
+    }
+});
+const root = app.mount('#app');
+window.__mailApp = root;
 
-                    return `<!DOCTYPE html>
-<html xmlns="http://www.w3.org/1999/xhtml">
-<head>
-    <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>${mailData.title}</title>
-</head>
-<body style="background-color: #dddddd; margin: 0; padding: 0;">
-    <center>
-        <table align="center" border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color: #dddddd; width: 100%;">
-            <tr>
-                <td align="center" valign="top" style="padding-top: 20px; padding-bottom: 20px;">
-                    <table border="0" cellpadding="0" cellspacing="0" width="600" style="background-color: #ffffff; width: 600px; max-width: 600px; border: 1px solid #d5d5d5;">
-                        <tr>
-                            <td align="left" valign="top" style="padding: 18px; text-align: left; font-family: Verdana, sans-serif; color: #202020; font-size: 14px; line-height: 150%;">
-
-                                <div style="text-align: center;">
-                                    <span style="font-size: 15px;">${mailData.greeting}<br>
-                                    ★ ChemLinked Japanメールマガジン ★<br>
-                                    https://jp.chemlinked.com/</span>
-                                </div>
-                                <br>
-                                <div style="border-top: 1px solid #eaeaea; margin: 9px 0; font-size: 1px; line-height: 1px;">&nbsp;</div>
-                                <br>
-
-                                <div style="text-align: justify;">
-                                    ${nl2br(mailData.introText)}
-                                </div>
-
-                                <ul style="margin: 10px 0 0; padding: 0 0 0 20px; text-align: left;">
-                                    ${listHtml}
-                                </ul>
-                                <br>
-
-                                ${mailData.noteText ? `<div style="text-align: justify;">${nl2br(mailData.noteText)}</div><br>` : ''}
-
-                                <div style="font-weight: bold; text-align: left;">${mailData.guideTitle}</div>
-                                <br><br>
-
-                                ${bookHtml}
-
-                                <br><br>
-
-                                <div style="text-align: center; margin-bottom: 15px;">
-                                    <h2 style="font-family: Verdana, sans-serif; font-size: 20px; font-weight: bold; color: #991B4A; margin: 0;">◎ChemLinked Japan活用のメリット◎</h2>
-                                </div>
-                                <div style="text-align: justify; margin-bottom: 25px; font-size: 14px; line-height: 150%;">
-                                    --------------------------------------------------------------------------<br>
-                                    ■ 現地の化学品、EHS、食品接触材料法規制最新情報をお届け！<br>
-                                    ■ 電子版データ、Webセミナー、レポートなどで法規制対応を支援！<br>
-                                    --------------------------------------------------------------------------<br>
-                                    中国を含むアジア太平洋地域において、化学品や食品接触材料、EHSで長年の法規制対応の経験を持つコンサルティング会社REACH24Hが運営する情報収集ツールです。<br><br>
-                                    会員区分及び利用規約は<a href="${withUtm('https://jp.chemlinked.com/membership')}" target="_blank" style="color: #991B4A; font-weight: bold; text-decoration: none;">こちら</a>
-                                </div>
-
-                                <table border="0" cellpadding="0" cellspacing="0" width="100%" style="margin-bottom: 30px;">
-                                    <tr>
-                                        <td align="center">
-                                            <table border="0" cellpadding="0" cellspacing="0" style="background-color: #4CAAD8;">
-                                                <tr>
-                                                    <td align="center" valign="middle" style="padding: 15px 30px;">
-                                                        <a href="${withUtm('https://jp.chemlinked.com/freetrial')}" target="_blank" style="font-family: Arial, sans-serif; font-size: 18px; font-weight: bold; color: #FFFFFF; text-decoration: none; display: block;">14日間無料体験をお申込みこちら</a>
-                                                    </td>
-                                                </tr>
-                                            </table>
-                                        </td>
-                                    </tr>
-                                </table>
-
-                                <div style="text-align: center; border-top: 1px dashed #cccccc; padding-top: 20px;">
-                                    <a href="*|UNSUB|*" style="color: #666666; font-size: 12px; text-decoration: underline;">メール配信停止（Unsubscribe）</a>
-                                </div>
-
-                            </td>
-                        </tr>
-                    </table>
-                </td>
-            </tr>
-        </table>
-    </center>
-</body>
-</html>`;
-                })
-
-                // 一键复制功能
-                const copyHtml = async () => {
-                    try {
-                        await navigator.clipboard.writeText(generatedHtml.value)
-                        copyBtnText.value = '🎉 复制成功'
-                        setTimeout(() => { copyBtnText.value = '📋 复制 HTML' }, 2000)
-                    } catch (err) {
-                        alert('复制失败，请切换到源码视图全选复制')
-                    }
-                }
-
-                return {
-                    viewMode,
-                    mailData,
-                    addItem,
-                    removeItem,
-                    addBook,
-                    removeBook,
-                    generatedHtml,
-                    copyHtml,
-                    copyBtnText
-                }
-            }
-        }).mount('#app')
     </script>
 </body>
 </html>
