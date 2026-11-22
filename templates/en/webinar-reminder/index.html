@@ -77,7 +77,7 @@
                     <input v-model="mailData.speakerTitle" type="text" placeholder="头衔" class="w-1/2 border border-gray-300 rounded-md p-1.5 text-sm">
                 </div>
                 <div class="mb-2">
-                    <label class="block text-xs text-gray-600">头像 URL (40px)</label>
+                    <label class="block text-xs text-gray-600">头像 URL (方形照片约 150px)</label>
                     <input v-model="mailData.speakerImg" type="text" class="block w-full border border-gray-300 rounded-md p-1.5 text-sm">
                 </div>
                 <div>
@@ -153,7 +153,7 @@
                     ],
                     speakerName: 'Lusy Li',
                     speakerTitle: 'Regulatory Affairs Consultant',
-                    speakerImg: 'https://mcusercontent.com/90f812c8598491dbd61143d91/images/c1675339-0a49-dfc4-9e98-8183549b33fb.png',
+                    speakerImg: 'https://mcusercontent.com/90f812c8598491dbd61143d91/images/4dac7909-e1be-ecb8-82ed-7e0162cb85f1.png',
                     speakerIntro: 'Ms. Lusy Li has been dedicated to the research of global GHS regulations and chemical compliance for years, providing regulatory consultation and training for numerous enterprises.',
                     contactEmail: 'chemical@chemlinked.com',
                     contactPhone: '+86 571 8769 9269',
@@ -280,7 +280,7 @@
                                 <table border="0" cellpadding="0" cellspacing="0" style="border-collapse: collapse;">
                                     <tr>
                                         <td valign="top" style="padding: 6px 14px 6px 0;">
-                                            <img src="${mailData.speakerImg}" width="40" height="40" alt="${mailData.speakerName}" style="border: 0; border-radius: 50%; display: block;">
+                                            <img src="${mailData.speakerImg}" width="150" alt="${mailData.speakerName}" style="max-width: 150px; width: 100%; border: 0; height: auto; display: block;">
                                         </td>
                                         <td valign="middle">
                                             <div style="font-weight: bold;">${mailData.speakerName}</div>
