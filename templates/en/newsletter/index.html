@@ -35,7 +35,7 @@
             <div class="mb-5 bg-gray-50 p-4 rounded-md border border-gray-200">
                 <label class="block text-sm font-bold text-gray-700 mb-2">2. FOCUS 头条</label>
                 <div class="mb-2">
-                    <label class="block text-xs text-gray-600">配图 URL</label>
+                    <label class="block text-xs text-gray-600">配图 URL (左侧 276px，点击跳转按钮链接)</label>
                     <input v-model="mailData.focus.imgUrl" type="text" class="block w-full border border-gray-300 rounded-md p-1.5 text-sm">
                 </div>
                 <div class="mb-2">
@@ -103,7 +103,7 @@
                 </label>
                 <div v-show="mailData.translation.enabled">
                     <div class="mb-2">
-                        <label class="block text-xs text-gray-600">封面图 URL</label>
+                        <label class="block text-xs text-gray-600">封面图 URL (左侧 172px，点击跳转按钮链接)</label>
                         <input v-model="mailData.translation.imgUrl" type="text" class="block w-full border border-gray-300 rounded-md p-1.5 text-sm">
                     </div>
                     <div class="mb-2">
@@ -197,11 +197,11 @@
                     date: '12th November, 2026',
                     logoUrl: 'https://mcusercontent.com/90f812c8598491dbd61143d91/images/458001ba-d045-bc3d-ad49-648b12e9d79b.png',
                     focus: {
-                        imgUrl: 'https://mcusercontent.com/90f812c8598491dbd61143d91/images/37aeb999-5828-a6a6-9e24-a4484271cf5f.jpg',
+                        imgUrl: 'https://mcusercontent.com/90f812c8598491dbd61143d91/images/408d6e35-c94f-afe6-d544-e78218816cd4.jpg',
                         title: 'China REACH: MEE Clarifies Transition Provisions under New Measures',
                         summary: 'On November 2, 2026, China MEE released a Q&A to clarify transitional issues concerning the Measures for the Environmental Management Registration of New Chemical Substances (MEE Order No. 40). Existing registrations and record notifications remain valid, but changes to their details require re-registration under MEE Order No. 40.',
                         btnText: 'EXPLORE MORE',
-                        btnLink: 'https://chemical.chemlinked.com/news/chemical-news/'
+                        btnLink: 'https://chemical.chemlinked.com/news/chemical-news/china-reach-mee-clarifies-transition-provisions-under-mee-order-no-40'
                     },
                     regionGroups: [
                         {
@@ -266,15 +266,15 @@
                     },
                     translation: {
                         enabled: true,
-                        imgUrl: 'https://mcusercontent.com/90f812c8598491dbd61143d91/images/bb4b0c65-aa2d-73fe-149e-a9312e3ee054.png',
+                        imgUrl: 'https://mcusercontent.com/90f812c8598491dbd61143d91/images/aa9ffb96-3c87-02cf-1a8a-547323363dac.png',
                         title: 'Measures for Environmental Management Registration of New Chemical Substances (MEE Order No. 40) Implementation Date',
                         btnText: 'Download/Buy Now',
-                        btnLink: 'https://chemical.chemlinked.com/database/'
+                        btnLink: 'https://chemical.chemlinked.com/database/view/2752'
                     },
                     event: {
                         enabled: true,
                         title: 'CHEMCON THE AMERICAS 2027',
-                        imgUrl: 'https://mcusercontent.com/90f812c8598491dbd61143d91/images/1410a188-2b36-21d1-90d1-fbc9df22e487.png',
+                        imgUrl: 'https://mcusercontent.com/90f812c8598491dbd61143d91/images/a99a90ac-4db2-933c-1d17-a36c9f18069a.jpg',
                         desc: 'The #1 global conference on international chemical regulations and sustainability around the world that brings together regulators, industry leaders, and experts.',
                         btnText: 'Register Now',
                         btnLink: 'https://chemcon.chemlinked.com/'
@@ -368,12 +368,10 @@
                                 ${sectionTitle('FOCUS', 36)}
                                 <table border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color: #f2f2f2; border-collapse: collapse;">
                                     <tr>
-                                        <td style="padding: 0;">
-                                            <img src="${mailData.focus.imgUrl}" width="564" alt="" style="max-width: 100%; width: 100%; border: 0; height: auto; display: block;">
+                                        <td width="276" valign="top" style="padding: 18px 0 18px 18px;">
+                                            <a href="${withUtm(mailData.focus.btnLink)}" target="_blank"><img src="${mailData.focus.imgUrl}" width="276" alt="${mailData.focus.title}" style="max-width: 276px; width: 100%; border: 0; height: auto; display: block; -ms-interpolation-mode: bicubic;"></a>
                                         </td>
-                                    </tr>
-                                    <tr>
-                                        <td style="padding: 18px; font-family: Arial, Helvetica, sans-serif; font-size: 14px; color: #222222; line-height: 150%; text-align: justify;">
+                                        <td valign="top" style="padding: 18px; font-family: Arial, Helvetica, sans-serif; font-size: 14px; color: #222222; line-height: 150%; text-align: justify;">
                                             <div style="font-size: 16px; font-weight: bold; margin-bottom: 8px;">${mailData.focus.title}</div>
                                             ${nl2br(mailData.focus.summary)}
                                             ${btnHtml(mailData.focus.btnText, mailData.focus.btnLink)}
@@ -429,9 +427,15 @@
                                 ${sectionTitle('NEW ENGLISH TRANSLATION')}
                                 <table border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color: #f2f2f2; border-collapse: collapse;">
                                     <tr>
-                                        <td align="center" style="padding: 18px;">
-                                            <img src="${mailData.translation.imgUrl}" width="264" alt="" style="max-width: 264px; width: 100%; border: 0; height: auto; display: block; margin: 0 auto;">
-                                            <div style="font-family: Arial, Helvetica, sans-serif; font-size: 14px; color: #222222; font-weight: bold; line-height: 150%; padding-top: 12px; text-align: center;">${mailData.translation.title}</div>
+                                        <td style="padding: 18px;">
+                                            <table border="0" cellpadding="0" cellspacing="0" width="100%" style="border-collapse: collapse;">
+                                                <tr>
+                                                    <td width="172" valign="top" style="padding-right: 14px;">
+                                                        <a href="${withUtm(mailData.translation.btnLink)}" target="_blank"><img src="${mailData.translation.imgUrl}" width="172" alt="${mailData.translation.title}" style="max-width: 172px; width: 100%; border: 0; height: auto; display: block; -ms-interpolation-mode: bicubic;"></a>
+                                                    </td>
+                                                    <td valign="middle" style="font-family: Arial, Helvetica, sans-serif; font-size: 14px; color: #222222; font-weight: bold; line-height: 150%; text-align: left;">${mailData.translation.title}</td>
+                                                </tr>
+                                            </table>
                                             ${btnHtml(mailData.translation.btnText, mailData.translation.btnLink)}
                                             <div style="height: 6px;">&nbsp;</div>
                                         </td>
